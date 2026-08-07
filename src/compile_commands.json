@@ -1,0 +1,54 @@
+[
+  {
+    "file": "kernel/startup.s",
+    "arguments": [
+      "/usr/bin/arm-none-eabi-gcc",
+      "-mcpu=cortex-m4",
+      "-mthumb",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-g",
+      "-c",
+      "kernel/startup.s",
+      "-o",
+      "./build/startup.o"
+    ],
+    "directory": "/home/francois/Documents/zzz__PersonalProjects/STM32/STMKernel/src",
+    "output": "./build/startup.o"
+  },
+  {
+    "file": "kernel/main.c",
+    "arguments": [
+      "/usr/bin/arm-none-eabi-gcc",
+      "-mcpu=cortex-m4",
+      "-mthumb",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-g",
+      "-c",
+      "kernel/main.c",
+      "-o",
+      "./build/main.o",
+      "-I./gpio"
+    ],
+    "directory": "/home/francois/Documents/zzz__PersonalProjects/STM32/STMKernel/src",
+    "output": "./build/main.o"
+  },
+  {
+    "file": "./gpio/gpio.c",
+    "arguments": [
+      "/usr/bin/arm-none-eabi-gcc",
+      "-mcpu=cortex-m4",
+      "-mthumb",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-g",
+      "-c",
+      "./gpio/gpio.c",
+      "-o",
+      "./build/gpio.o"
+    ],
+    "directory": "/home/francois/Documents/zzz__PersonalProjects/STM32/STMKernel/src",
+    "output": "./build/gpio.o"
+  }
+]
