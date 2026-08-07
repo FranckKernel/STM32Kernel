@@ -1,3 +1,4 @@
 *.o
 .ccls-cache/
+src/.ccls-cache/
 src/build/
