@@ -8,6 +8,9 @@ CC=arm-none-eabi-gcc
 DUMP=arm-none-eabi-objdump
 OBJCOPY=arm-none-eabi-objcopy
 
+FLASH_NOT_EMULATE="false"
+DEBUG="false"
+
 # ============= DIRECTORIES
 BUILD_DIR="./build"
 
@@ -58,7 +61,20 @@ $OBJCOPY \
 
 $DUMP "$BUILD_DIR/$TARGET.elf" -D >"$BUILD_DIR/$TARGET.dump"
 
-st-flash write "$BUILD_DIR/$TARGET.bin" 0x8000000
+if [[ "$FLASH_NOT_EMULATE" == "true" ]]; then
+	st-flash write "$BUILD_DIR/$TARGET.bin" 0x8000000
+	if [[ "$DEBUG" == "true" ]]; then
+		st-util
+	fi
+else
+	if [[ "$DEBUG" == "true" ]]; then
+		# renode --console debug.resc
+		renode debug.resc
+	else
+		# renode --console run.resc
+		renode run.resc
+	fi
+fi
 
 # Only if debug mode
 # st-util

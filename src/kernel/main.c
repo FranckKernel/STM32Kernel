@@ -39,6 +39,7 @@ int main(void)
 	// wait_seconds(1);
 
 	gpio_setup(GPIO_PORT_LETTER_A, 5, GPIO_PORT_MODE_OUTPUT);
+	gpio_setup(GPIO_PORT_LETTER_D, 12, GPIO_PORT_MODE_OUTPUT); // renode led
 
 	// Configure PA5 as output
 	// GPIOA_MODER &= ~(0x3 << 10);
@@ -49,17 +50,17 @@ int main(void)
 
 	// wait_seconds(3);
 
-	gpio_write(GPIO_PORT_LETTER_A, 5, 1);
-
 	start_of_loop();
 	while (1)
 	{
 		// wait_seconds(1);
 		gpio_write(GPIO_PORT_LETTER_A, 5, 1);
+		gpio_write(GPIO_PORT_LETTER_D, 12, 1);
 		wait_seconds(1);
 		in_the_loop();
 
 		gpio_write(GPIO_PORT_LETTER_A, 5, 0);
+		gpio_write(GPIO_PORT_LETTER_D, 12, 0);
 		wait_seconds(1);
 		// in_the_loop();
 	}

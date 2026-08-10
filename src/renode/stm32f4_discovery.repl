@@ -1,0 +1,13 @@
+using "platforms/cpus/stm32f4.repl"
+
+UserButton: Miscellaneous.Button @ gpioPortA
+    -> gpioPortA@0
+
+UserLED: Miscellaneous.LED @ gpioPortD
+LD2: Miscellaneous.LED @ gpioPortA
+
+gpioPortD:
+    12 -> UserLED@0
+
+gpioPortA:
+    5 -> LD2@0

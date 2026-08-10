@@ -1,0 +1,11 @@
+mach create
+machine LoadPlatformDescription @/home/francois/Documents/zzz__PersonalProjects/STM32/STMKernel/src/renode/stm32f4_discovery.repl
+
+sysbus LoadBinary @/home/francois/Documents/zzz__PersonalProjects/STM32/STMKernel/src/build/kernel.bin 0x08000000
+
+sysbus.cpu VectorTableOffset 0x08000000
+
+
+start
+
+

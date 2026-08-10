@@ -1,0 +1,10 @@
+mach create
+machine LoadPlatformDescription @/opt/renode/platforms/boards/stm32f4_discovery.repl
+
+sysbus LoadBinary @/home/francois/Documents/zzz__PersonalProjects/STM32/STMKernel/src/build/kernel.bin 0x08000000
+
+sysbus.cpu VectorTableOffset 0x08000000
+
+machine StartGdbServer 4242 false
+# false: Don't start the emulated cpu yet. Wait for the debugger commands
+
