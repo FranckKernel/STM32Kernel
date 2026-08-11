@@ -20,13 +20,14 @@ SECTIONS
 	.vector_table :
 	{
 		. = ALIGN(4);
-        KEEP(*(.isr_vector))
+        /* KEEP(*(.isr_vector)) */
 		. = ALIGN(4);
 	} >FLASH
 
     .text :
     {
 		. = ALIGN(4);
+        KEEP(*(.isr_vector))
 		*(.text)
 		*(.text*)
 		. = ALIGN(4);
