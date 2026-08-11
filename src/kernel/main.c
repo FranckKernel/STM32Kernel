@@ -1,5 +1,8 @@
 #include "gpio.h"
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 volatile uint32_t counter = 0;
 
@@ -37,6 +40,12 @@ int main(void)
 	RCC_AHB1ENR |= (1 << 0); // enable GPIOA clock (bit 0)
 
 	// wait_seconds(1);
+
+	char array[50];
+	int	 b[] = {1, 2, 3, 4, 5, 6};
+
+	memcpy(array, b, 4);
+	printf("ABC is working %d\n", 27);
 
 	gpio_setup(GPIO_PORT_LETTER_A, 5, GPIO_PORT_MODE_OUTPUT);
 	gpio_setup(GPIO_PORT_LETTER_D, 12, GPIO_PORT_MODE_OUTPUT); // renode led

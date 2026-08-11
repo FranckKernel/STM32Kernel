@@ -2,6 +2,30 @@
 set -eou pipefail
 shopt -s nullglob
 
+MOV_WORKSPACE=21 # In hyprland, move it there
+MOV_PID_DIR="$HOME/.local/bin"
+
+function find_git_root() {
+	local dir=${1:-$PWD} # start from given dir or current directory
+	while [[ "$dir" != "/" ]]; do
+		if [[ -d "$dir/.git" ]]; then
+			echo "$dir"
+			return 0
+		fi
+		dir=$(dirname "$dir")
+	done
+	echo "No git repository found" >&2
+	return 1
+}
+project_root=$(find_git_root)
+src="$project_root/src/"
+cd "$src" || { # Tries to cd to "src" relative to current dir
+	echo "Could not cd to $src."
+	exit 1
+}
+
+mkdir -p "$MOV_PID_DIR" && { [[ -e "$MOV_PID_DIR/move_pid_to_workspace" ]] || ln -s "$project_root/src/user_tools/move_pid_to_workspace.py" "$MOV_PID_DIR/move_pid_to_workspace"; }
+
 TARGET=kernel
 
 CC=arm-none-eabi-gcc
@@ -30,7 +54,12 @@ CFLAGS=(
 LDFLAGS=(
 	"-nostdlib"
 	"-Wl,--gc-sections"
+	"-specs=nosys.specs"
+	"-Wl,--start-group"
+	"-lm"
+	"-lc"
 	"-lgcc"
+	"-Wl,--end-group"
 )
 
 mkdir -p "$BUILD_DIR"
@@ -39,6 +68,8 @@ echo "[CC] compiling..."
 
 $CC "${CFLAGS[@]}" -c kernel/startup.s -o "$BUILD_DIR"/startup.o
 $CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO"
+
+$CC "${CFLAGS[@]}" -c "./stdlib/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO"
 
 $CC "${CFLAGS[@]}" -c "$GPIO/gpio.c" -o "$BUILD_DIR"/gpio.o
 
@@ -69,12 +100,14 @@ if [[ "$FLASH_NOT_EMULATE" == "true" ]]; then
 else
 	if [[ "$DEBUG" == "true" ]]; then
 		# renode --console debug.resc
-		renode debug.resc
+		renode debug.resc &
+		RENODE_PID="$(pgrep -f "Renode.dll")"
+		move_pid_to_workspace "$RENODE_PID" "$MOV_WORKSPACE"
 	else
 		# renode --console run.resc
-		renode run.resc
+		renode run.resc &
+		RENODE_PID="$(pgrep -f "Renode.dll")"
+		move_pid_to_workspace "$RENODE_PID" "$MOV_WORKSPACE"
+
 	fi
 fi
-
-# Only if debug mode
-# st-util

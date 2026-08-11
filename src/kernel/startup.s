@@ -2,21 +2,21 @@
 .cpu cortex-m4
 .thumb
 
-.global reset_handler
+.global _reset
 .global vector_table
 
 .section .isr_vector
 vector_table:
 
 .word _estack
-.word reset_handler
+.word _reset
 
 
 .section .text
 
-reset_handler:
+_reset:
+	bl main
 
-    bl main
 
 hang:
     b hang

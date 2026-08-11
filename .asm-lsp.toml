@@ -1,4 +1,8 @@
 [default_config]
-version = "0.10.0"
-instruction_set = "arm"
 assembler = "gas"
+instruction_set = "arm"
+
+[default_config.opts]
+compiler = "/usr/bin/arm-none-eabi-gcc"
+compile_flags_txt = ["-mcpu=cortex-m4", "-mthumb", "-ffreestanding", "-fno-builtin", "-g"]
+diagnostics = true

@@ -1,4 +1,4 @@
-ENTRY(reset_handler)
+ENTRY(_reset)
 
 MEMORY
 {
@@ -30,5 +30,8 @@ SECTIONS
         *(.bss*)
         *(COMMON)
         _ebss = .;
+
+		. = ALIGN(4);
+		_end = .;
     } > RAM
 }
