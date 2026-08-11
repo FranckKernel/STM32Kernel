@@ -285,7 +285,9 @@ enum GPIO_PORT_LETTER
 
 };
 
-extern struct GPIO_REGISTERS gpio;
+// Should i make these public?
+extern struct GPIO_REGISTERS	   gpio_struct;
+extern volatile gpio_x_register_t *gpio[];
 
 void gpio_port_mode_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_MODE mode);
 void gpio_output_type_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_OUTPUT_TYPE output_type);

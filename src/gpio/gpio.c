@@ -8,7 +8,7 @@ static volatile gpio_x_register_t *const GPIOE_Register = (gpio_x_register_t *)G
 static volatile gpio_x_register_t *const GPIOF_Register = (gpio_x_register_t *)GPIO_MMIO_F_BASE;
 static volatile gpio_x_register_t *const GPIOG_Register = (gpio_x_register_t *)GPIO_MMIO_G_BASE;
 
-struct GPIO_REGISTERS gpio = {
+struct GPIO_REGISTERS gpio_struct = {
 	.a = GPIOA_Register,
 	.b = GPIOB_Register,
 	.c = GPIOC_Register,
@@ -18,23 +18,29 @@ struct GPIO_REGISTERS gpio = {
 	.g = GPIOG_Register,
 };
 
+volatile gpio_x_register_t *gpio[] = {
+	(volatile gpio_x_register_t *)GPIO_MMIO_A_BASE,
+	(volatile gpio_x_register_t *)GPIO_MMIO_B_BASE,
+	(volatile gpio_x_register_t *)GPIO_MMIO_C_BASE,
+	(volatile gpio_x_register_t *)GPIO_MMIO_D_BASE,
+	(volatile gpio_x_register_t *)GPIO_MMIO_E_BASE,
+	(volatile gpio_x_register_t *)GPIO_MMIO_F_BASE,
+	(volatile gpio_x_register_t *)GPIO_MMIO_G_BASE,
+};
+
 void gpio_port_mode_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_MODE mode)
 {
-	uint32_t		   letter_base	  = (GPIO_MMIO_ADDRESS_BASE + letter * GPIO_MMIO_LETTER_DIFF);
-	uint32_t		   port_mode_addr = letter_base + GPIO_PORT_MODE_ADDRESS_OFFSET;
-	volatile uint32_t *port_modes	  = (volatile uint32_t *)port_mode_addr;
+	volatile gpio_port_mode_t *const port_modes = &gpio[letter]->port_mode;
 
-	uint32_t port_modes_val = *port_modes;
+	uint32_t port_modes_val = *(volatile uint32_t *)port_modes;
 	port_modes_val &= ~(0b11 << (2 * pin));
 	port_modes_val |= ((uint32_t)mode << (2 * pin));
 
-	*port_modes = port_modes_val;
+	*(volatile uint32_t *)port_modes = port_modes_val;
 }
 void gpio_output_type_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_OUTPUT_TYPE output_type)
 {
-	uint32_t								letter_base		= GPIO_MMIO_ADDRESS_BASE + letter * GPIO_MMIO_LETTER_DIFF;
-	volatile gpio_x_register_t *const		gpioX			= (volatile gpio_x_register_t *const)letter_base;
-	volatile gpio_port_output_type_t *const output_type_ptr = &gpioX->output_type;
+	volatile gpio_port_output_type_t *const output_type_ptr = &gpio[letter]->output_type;
 
 	uint32_t output_type_raw = *(volatile uint32_t *)output_type_ptr;
 
@@ -46,9 +52,7 @@ void gpio_output_type_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO
 
 void gpio_pull_mode_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_PULL_MODE pull_mode)
 {
-	uint32_t							  letter_base	= (GPIO_MMIO_ADDRESS_BASE + letter * GPIO_MMIO_LETTER_DIFF);
-	volatile gpio_x_register_t *const	  gpioX			= (volatile gpio_x_register_t *const)letter_base;
-	volatile gpio_port_pull_mode_t *const pull_mode_ptr = &gpioX->pull_mode;
+	volatile gpio_port_pull_mode_t *const pull_mode_ptr = &gpio[letter]->pull_mode;
 
 	uint32_t pull_mode_raw = *(volatile uint32_t *)pull_mode_ptr;
 
@@ -61,9 +65,7 @@ void gpio_pull_mode_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_P
 
 void gpio_output_speed_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_OUTPUT_SPEED speed)
 {
-	uint32_t								 letter_base = GPIO_MMIO_ADDRESS_BASE + letter * GPIO_MMIO_LETTER_DIFF;
-	volatile gpio_x_register_t *const		 gpioX		 = (volatile gpio_x_register_t *const)letter_base;
-	volatile gpio_port_output_speed_t *const speed_ptr	 = &gpioX->output_speed;
+	volatile gpio_port_output_speed_t *const speed_ptr = &gpio[letter]->output_speed;
 
 	uint32_t speed_raw = *(volatile uint32_t *)speed_ptr;
 
@@ -75,9 +77,7 @@ void gpio_output_speed_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPI
 
 void gpio_write(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_OUTPUT_DATA level)
 {
-	uint32_t								  letter_base	= (GPIO_MMIO_ADDRESS_BASE + letter * GPIO_MMIO_LETTER_DIFF);
-	volatile gpio_x_register_t *const		  gpioX			= (volatile gpio_x_register_t *const)letter_base;
-	volatile gpio_port_bit_set_reset_t *const set_reset_ptr = &gpioX->bit_set_reset;
+	volatile gpio_port_bit_set_reset_t *const set_reset_ptr = &gpio[letter]->bit_set_reset;
 
 	volatile uint32_t *set_reset_ptr_raw = (volatile uint32_t *)set_reset_ptr;
 
@@ -96,17 +96,17 @@ void gpio_write(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_OUTPUT_DATA
 
 void reg_setup()
 {
-	gpio.a->port_mode.pin5 = GPIO_PORT_MODE_OUTPUT;
+	gpio_struct.a->port_mode.pin5 = GPIO_PORT_MODE_OUTPUT;
 }
 
 enum GPIO_INPUT_DATA gpio_read(enum GPIO_PORT_LETTER letter, uint8_t pin)
 {
 
-	uint32_t							   letter_base = (GPIO_MMIO_ADDRESS_BASE + letter * GPIO_MMIO_LETTER_DIFF);
-	volatile gpio_x_register_t *const	   gpioX	   = (volatile gpio_x_register_t *const)letter_base;
-	volatile gpio_port_input_data_t *const input_data  = &gpioX->input_data;
+	volatile gpio_port_input_data_t *const input_data = &gpio[letter]->input_data;
 
 	// return input_data->pin1;
+	// if we know the pin in advance, sadly, we have one field per pin.
+	// can't have arrays of pins
 
 	volatile uint32_t *const input_data_raw = (volatile uint32_t *const)input_data;
 	uint32_t				 id				= *input_data_raw;
@@ -118,10 +118,10 @@ void setLD2(enum GPIO_OUTPUT_DATA level)
 {
 	if (level)
 	{
-		gpio.a->bit_set_reset.pin5_set = 1;
+		gpio_struct.a->bit_set_reset.pin5_set = 1;
 	}
 	else
 	{
-		gpio.a->bit_set_reset.pin5_reset = 1;
+		gpio_struct.a->bit_set_reset.pin5_reset = 1;
 	}
 }

@@ -84,27 +84,7 @@ int main(void)
 
 	while (1)
 	{
-		// uint32_t button = (*(volatile uint32_t *)0x40020404) & (1 << 12);
-		uint8_t button = gpio_read(INPUT_LETTER, INPUT_PIN);
-		// gpio_write(GPIOA, 5, 1);
-		// bool button = ~gpio.b->input_data.pin12;
-		gpio_write(GPIOA, 5, !button);
-		// if (button)
-		// {
-		// 	gpio.a->bit_set_reset.pin5_set = 1;
-		// }
-		// else
-		// {
-		// 	gpio.a->bit_set_reset.pin5_reset = 1;
-		// }
-		// wait_seconds(1);
-		// gpio_write(GPIOA, 5, 1);
-		// gpio_write(GPIOA, 5, 0);
-		// gpio_write(GPIOB, 12, 1);
-		// wait_seconds(0.5);
-		// gpio_write(GPIOB, 12, 1);
-		// in_the_loop();
+		uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);
+		gpio_write(GPIOA, 5, button);
 	}
-
-	// reg_setup();
 }
