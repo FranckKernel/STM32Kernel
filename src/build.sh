@@ -46,16 +46,26 @@ CFLAGS=(
 	"-g"
 	"-std=c23"
 	"-O3"
+	"-ffunction-sections"
+	"-fdata-sections"
 )
 
 LDFLAGS=(
 	"-nostdlib"
+	"-nostartfiles"
+	# -nostdlib does no startfiles and -nodefaultlibs. this way, you can comment in and out which you want
+	# -nodefaultlibs is kinda undone by -lgcc and the rest
 	"-Wl,--gc-sections"
 	"-specs=nosys.specs"
+	"-specs=nano.specs"
 	"-Wl,--start-group"
 	"-lm"
 	"-lc"
 	"-lgcc"
+	# "-lnosys"
+
+	# if i didn't have an empty syscall.c, then libnosys would be needed
+	# but its good to have it here so i remember it exist
 	"-Wl,--end-group"
 )
 
