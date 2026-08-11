@@ -3,3 +3,5 @@
 src/.ccls-cache/
 src/build/
 Board Docs/Mastering STM32 Second edition.pdf_filter_repo_prevent
+
+**/compile_commands.json 

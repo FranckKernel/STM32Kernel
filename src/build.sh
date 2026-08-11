@@ -3,7 +3,6 @@ set -eou pipefail
 shopt -s nullglob
 
 MOV_WORKSPACE=21 # In hyprland, move it there
-MOV_PID_DIR="$HOME/.local/bin"
 
 function find_git_root() {
 	local dir=${1:-$PWD} # start from given dir or current directory
@@ -23,8 +22,6 @@ cd "$src" || { # Tries to cd to "src" relative to current dir
 	echo "Could not cd to $src."
 	exit 1
 }
-
-mkdir -p "$MOV_PID_DIR" && { [[ -e "$MOV_PID_DIR/move_pid_to_workspace" ]] || ln -s "$project_root/src/user_tools/move_pid_to_workspace.py" "$MOV_PID_DIR/move_pid_to_workspace"; }
 
 TARGET=kernel
 
@@ -93,19 +90,23 @@ $OBJCOPY \
 $DUMP "$BUILD_DIR/$TARGET.elf" -D >"$BUILD_DIR/$TARGET.dump"
 
 if [[ "$FLASH_NOT_EMULATE" == "true" ]]; then
+	echo "[RUN]: Flashing the os in a simulated Renode"
 	st-flash write "$BUILD_DIR/$TARGET.bin" 0x8000000
 	if [[ "$DEBUG" == "true" ]]; then
 		st-util
 	fi
 else
+	echo "[RUN]: Running the os in a simulated Renode"
 	if [[ "$DEBUG" == "true" ]]; then
 		# renode --console debug.resc
 		renode debug.resc &
+		sleep 1
 		RENODE_PID="$(pgrep -f "Renode.dll")"
 		move_pid_to_workspace "$RENODE_PID" "$MOV_WORKSPACE"
 	else
 		# renode --console run.resc
 		renode run.resc &
+		sleep 1
 		RENODE_PID="$(pgrep -f "Renode.dll")"
 		move_pid_to_workspace "$RENODE_PID" "$MOV_WORKSPACE"
 
