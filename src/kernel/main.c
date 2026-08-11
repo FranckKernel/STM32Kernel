@@ -11,9 +11,12 @@ static inline void nop(void)
 	__asm volatile("nop");
 }
 
+uint32_t clock_frequency = 16 * 1000 * 1000;
+
 void wait_seconds(float seconds)
 {
-	uint32_t cycles = (uint32_t)(seconds * 1000000.0f);
+
+	uint32_t cycles = (uint32_t)(seconds * clock_frequency / 4);
 
 	while (cycles--)
 	{
@@ -34,43 +37,72 @@ void in_the_loop()
 	__asm volatile("nop");
 }
 
+extern uint32_t _sidata;
+extern uint32_t _sdata;
+extern uint32_t _edata;
+
+void data_section_init(void)
+{
+	uint32_t *src = &_sidata;
+	uint32_t *dst = &_sdata;
+
+	while (dst < &_edata)
+	{
+		*dst++ = *src++;
+	}
+}
+
 int main(void)
 {
 
+	data_section_init();
+
 	RCC_AHB1ENR |= (1 << 0); // enable GPIOA clock (bit 0)
+	RCC_AHB1ENR |= (1 << 1);
 
 	// wait_seconds(1);
 
 	char array[50];
 	int	 b[] = {1, 2, 3, 4, 5, 6};
 
-	memcpy(array, b, 4);
-	printf("ABC is working %d\n", 27);
+	// memcpy(array, b, 4);
+	// printf("ABC is working %d\n", 27);
 
-	gpio_setup(GPIO_PORT_LETTER_A, 5, GPIO_PORT_MODE_OUTPUT);
-	gpio_setup(GPIO_PORT_LETTER_D, 12, GPIO_PORT_MODE_OUTPUT); // renode led
+	// gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
+	// gpio.a->port_mode.pin5 = GPIO_PORT_MODE_OUTPUT;
+	gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
+	gpio_output_type_setup(GPIOA, 5, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
 
-	// Configure PA5 as output
-	// GPIOA_MODER &= ~(0x3 << 10);
-	// GPIOA_MODER |= (0x1 << 10);
+	gpio_port_mode_setup(GPIOB, 12, GPIO_PORT_MODE_INPUT);
+	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
 
-	// Set PA5 high (direct write)
-	// GPIOA_BSRR = (1 << 5);
+	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;
+#define INPUT_LETTER GPIOB
+#define INPUT_PIN 12
+	// gpio_port_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_MODE_INPUT);
+	// gpio_pull_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_PULL_MODE_UP);
 
-	// wait_seconds(3);
-
-	start_of_loop();
 	while (1)
 	{
+		// uint32_t button = (*(volatile uint32_t *)0x40020404) & (1 << 12);
+		uint8_t button = gpio_read(INPUT_LETTER, INPUT_PIN);
+		// gpio_write(GPIOA, 5, 1);
+		// bool button = ~gpio.b->input_data.pin12;
+		gpio_write(GPIOA, 5, !button);
+		// if (button)
+		// {
+		// 	gpio.a->bit_set_reset.pin5_set = 1;
+		// }
+		// else
+		// {
+		// 	gpio.a->bit_set_reset.pin5_reset = 1;
+		// }
 		// wait_seconds(1);
-		gpio_write(GPIO_PORT_LETTER_A, 5, 1);
-		gpio_write(GPIO_PORT_LETTER_D, 12, 1);
-		wait_seconds(1);
-		in_the_loop();
-
-		gpio_write(GPIO_PORT_LETTER_A, 5, 0);
-		gpio_write(GPIO_PORT_LETTER_D, 12, 0);
-		wait_seconds(1);
+		// gpio_write(GPIOA, 5, 1);
+		// gpio_write(GPIOA, 5, 0);
+		// gpio_write(GPIOB, 12, 1);
+		// wait_seconds(0.5);
+		// gpio_write(GPIOB, 12, 1);
 		// in_the_loop();
 	}
 

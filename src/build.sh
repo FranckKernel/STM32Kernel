@@ -29,8 +29,11 @@ CC=arm-none-eabi-gcc
 DUMP=arm-none-eabi-objdump
 OBJCOPY=arm-none-eabi-objcopy
 
-FLASH_NOT_EMULATE="false"
-DEBUG="false"
+DEBUG_OR_RELEASE="${1:-release}"
+QEMU_OR_REAL_MACHINE="${2:-real}"
+MACHINE_BITNESS="${3:-64}"
+MOVE_VM_WINDOW="${4:-move}"
+STOP_AT_ENTRY="${5:-false}"
 
 # ============= DIRECTORIES
 BUILD_DIR="./build"
@@ -99,22 +102,25 @@ $OBJCOPY \
 
 $DUMP "$BUILD_DIR/$TARGET.elf" -D >"$BUILD_DIR/$TARGET.dump"
 
-if [[ "$FLASH_NOT_EMULATE" == "true" ]]; then
-	echo "[RUN]: Flashing the os in a simulated Renode"
+if [[ "$QEMU_OR_REAL_MACHINE" == "real" ]]; then
+	echo "[RUN]: Flashing the kernel"
 	st-flash write "$BUILD_DIR/$TARGET.bin" 0x8000000
-	if [[ "$DEBUG" == "true" ]]; then
+	st-flash reset
+	if [[ "$DEBUG_OR_RELEASE" == "debug" ]]; then
 		st-util
 	fi
 else
-	echo "[RUN]: Running the os in a simulated Renode"
-	if [[ "$DEBUG" == "true" ]]; then
+	echo "[RUN]: Flashing the os in a simulated Renode"
+	if [[ "$DEBUG_OR_RELEASE" == "debug" ]]; then
 		# renode --console debug.resc
+		echo "[RUN]: Running the os in a simulated Renode (DEBUG MODE)."
 		renode debug.resc &
 		sleep 1
 		RENODE_PID="$(pgrep -f "Renode.dll")"
 		move_pid_to_workspace "$RENODE_PID" "$MOV_WORKSPACE"
 	else
 		# renode --console run.resc
+		echo "[RUN]: Running the os in a simulated Renode (RELEASE MODE)."
 		renode run.resc &
 		sleep 1
 		RENODE_PID="$(pgrep -f "Renode.dll")"
