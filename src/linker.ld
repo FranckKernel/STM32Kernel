@@ -6,7 +6,7 @@ MEMORY
     RAM   (rwx): ORIGIN = 0x20000000, LENGTH = 128K
 }
 
-_estack = ORIGIN(RAM) + LENGTH(RAM);
+__stack_end = ORIGIN(RAM) + LENGTH(RAM);
 
 /* Set minimum size for stack and dynamic memory. */
 /* (The linker will generate an error if there is
@@ -45,34 +45,33 @@ SECTIONS
 	.data :
 	{
 		. = ALIGN(4);
-		_sdata = .;
+		__data_start = .;
 		*(.data)
 		*(.data*)
 		_edata = .;
 		. = ALIGN(4);
 	} >RAM AT>FLASH
-	_sidata = LOADADDR(.data);
+	__data_image_start = LOADADDR(.data);
 
     .bss :
     {
 		. = ALIGN(4);
-        _sbss = .;
+        __bss_start = .;
         *(.bss)
         *(.bss*)
         *(COMMON)
 
 		. = ALIGN(4);
-        _ebss = .;
+        __bss_end = .;
     } > RAM
 
 	  /* Space set aside for the application's heap/stack. */
 	.dynamic_allocations :
 	{
 		. = ALIGN(4);
-		/* end is temporary, used for heap memory */
-		_ssystem_ram = .;
+		__heap_start = .;
 		. = . + _Min_Leftover_RAM;
 		. = ALIGN(4);
-		_esystem_ram = .;
+		__heap_end = .;
 	} >RAM
 }

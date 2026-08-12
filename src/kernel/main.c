@@ -34,14 +34,14 @@ void in_the_loop()
 	__asm volatile("nop");
 }
 
-extern uint32_t _sidata;
-extern uint32_t _sdata;
+extern uint32_t __data_image_start;
+extern uint32_t __data_start;
 extern uint32_t _edata;
 
 void data_section_init(void)
 {
-	uint32_t *src = &_sidata;
-	uint32_t *dst = &_sdata;
+	uint32_t *src = &__data_image_start;
+	uint32_t *dst = &__data_start;
 
 	while (dst < &_edata)
 	{

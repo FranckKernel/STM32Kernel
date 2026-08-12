@@ -3,9 +3,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-extern char _end;
+extern char __heap_start;
 
-static char *heap_end = &_end;
+static char *heap_end = &__heap_start;
 
 void *_sbrk(int incr)
 {

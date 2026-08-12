@@ -7,7 +7,7 @@
 
 .section .isr_vector
 vector_table:
-.word _estack
+.word __stack_end
 .word _reset
 
 
