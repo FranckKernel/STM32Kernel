@@ -1,15 +1,12 @@
 #include "gpio.h"
+#include "intrinsics.h"
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-volatile uint32_t counter = 0;
-
-static inline void nop(void)
-{
-	__asm volatile("nop");
-}
+#ifdef USE_LIBC
+#	include <stdio.h>
+#	include <stdlib.h>
+#	include <string.h>
+#endif
 
 uint32_t clock_frequency = 16 * 1000 * 1000;
 
@@ -65,11 +62,14 @@ int main(void)
 	char array[50];
 	int	 b[] = {1, 2, 3, 4, 5, 6};
 
-	// memcpy(array, b, 4);
-	// printf("ABC is working %d\n", 27);
+#ifdef USE_LIBC
+	memcpy(array, b, 4);
+	printf("ABC is working %d\n", 27);
+	char *arr = malloc(100);
+#endif
 
-	// gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
-	// gpio.a->port_mode.pin5 = GPIO_PORT_MODE_OUTPUT;
+	// gpio_struct.a->port_mode.pin5 = GPIO_PORT_MODE_OUTPUT;
+	// gpio[GPIOA]->port_mode.pin5 = GPIO_PORT_MODE_OUTPUT;
 	gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
 	gpio_output_type_setup(GPIOA, 5, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
 

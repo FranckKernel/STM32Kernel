@@ -39,8 +39,11 @@ STOP_AT_ENTRY="${5:-false}"
 BUILD_DIR="./build"
 
 GPIO="./gpio"
+STDLIB="./stdlib"
 
 # ============= FLAGS
+USE_LIBC="true" # or "false"
+
 CFLAGS=(
 	"-mcpu=cortex-m4"
 	"-mthumb"
@@ -54,17 +57,19 @@ CFLAGS=(
 )
 
 LDFLAGS=(
-	"-nostdlib"
-	"-nostartfiles"
+	"-nostdlib"     # prevents automatic link of standard libs
+	"-nostartfiles" # prevents automatic startup files
 	# -nostdlib does no startfiles and -nodefaultlibs. this way, you can comment in and out which you want
 	# -nodefaultlibs is kinda undone by -lgcc and the rest
-	"-Wl,--gc-sections"
-	"-specs=nosys.specs"
-	"-specs=nano.specs"
+	"-Wl,--gc-sections" # garbage‑collect unused sections
+)
+
+LDFLAGS_LIBC=(
+	"-specs=nosys.specs" # newlib syscall stubs
+	"-specs=nano.specs"  # newlib‑nano optimisations
 	"-Wl,--start-group"
 	"-lm"
 	"-lc"
-	"-lgcc"
 	# "-lnosys"
 
 	# if i didn't have an empty syscall.c, then libnosys would be needed
@@ -72,12 +77,21 @@ LDFLAGS=(
 	"-Wl,--end-group"
 )
 
+if [ "$USE_LIBC" = "true" ]; then
+	LDFLAGS+=("${LDFLAGS_LIBC[@]}")
+	CFLAGS+=("-DUSE_LIBC")
+else
+	echo 123
+fi
+# ✅ -lgcc goes dead last, unconditionally
+LDFLAGS+=("-lgcc")
+
 mkdir -p "$BUILD_DIR"
 
 echo "[CC] compiling..."
 
 $CC "${CFLAGS[@]}" -c kernel/startup.s -o "$BUILD_DIR"/startup.o
-$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO"
+$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB"
 
 $CC "${CFLAGS[@]}" -c "./stdlib/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO"
 

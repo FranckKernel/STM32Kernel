@@ -7,7 +7,8 @@
 // AHB Presc: Advanced High Performance Bus Prescalor. A Prescaler divide a clock and outputs a slower version of it
 // HCLK: AHB Clock. The clock that drives everything sitting on ahb bys. The core, memory interface and DMA.
 // APB = Advanced Peripheral Bus. Simpler slower bus for peripherals (timers, uart, spi, i2c, etc).
-//	 | It's clock are PCLK1 (APB1), and PCLK2 APB2)
+//		| It's clock are PCLK1 (APB1), and PCLK2 APB2)
+// 		| APB1 : Low speed, APB2 (Max 50Mhz): High speed (Max 100 Mhz)
 
 // The sysclock can come from the hsi, the hse or the pllclk
 // The pll clock can be sourced from the hse or the hsi

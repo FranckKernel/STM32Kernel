@@ -216,6 +216,15 @@ const gpio_c = struct {
 // ============================================================================
 // PRIVATE GPIO PORT ARRAY
 // ============================================================================
+const gpio_struct = struct {
+    pub const a: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_A_BASE);
+    pub const b: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_B_BASE);
+    pub const c: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_C_BASE);
+    pub const d: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_D_BASE);
+    pub const e: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_E_BASE);
+    pub const f: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_F_BASE);
+    pub const g: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_G_BASE);
+};
 
 const gpio: [7]*volatile GpioXRegister = .{
     @ptrFromInt(GPIO_MMIO_A_BASE),
@@ -225,16 +234,6 @@ const gpio: [7]*volatile GpioXRegister = .{
     @ptrFromInt(GPIO_MMIO_E_BASE),
     @ptrFromInt(GPIO_MMIO_F_BASE),
     @ptrFromInt(GPIO_MMIO_G_BASE),
-};
-
-const gpio_struct = struct {
-    pub const a: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_A_BASE);
-    pub const b: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_B_BASE);
-    pub const c: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_C_BASE);
-    pub const d: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_D_BASE);
-    pub const e: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_E_BASE);
-    pub const f: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_F_BASE);
-    pub const g: *volatile GpioXRegister = @ptrFromInt(GPIO_MMIO_G_BASE);
 };
 
 // ============================================================================
