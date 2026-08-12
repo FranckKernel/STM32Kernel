@@ -1,5 +1,6 @@
 #include "gpio.h"
 #include "intrinsics.h"
+#include "syscall.h"
 #include <stdint.h>
 
 #ifdef USE_LIBC
@@ -63,8 +64,8 @@ int main(void)
 	int	 b[] = {1, 2, 3, 4, 5, 6};
 
 #ifdef USE_LIBC
-	memcpy(array, b, 4);
-	printf("ABC is working %d\n", 27);
+	// memcpy(array, b, 4);
+	// printf("ABC is working %d\n", 27);
 	char *arr = malloc(100);
 #endif
 

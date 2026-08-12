@@ -42,7 +42,7 @@ GPIO="./gpio"
 STDLIB="./stdlib"
 
 # ============= FLAGS
-USE_LIBC="true" # or "false"
+USE_LIBC="false" # or "false"
 
 CFLAGS=(
 	"-mcpu=cortex-m4"

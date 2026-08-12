@@ -6,6 +6,8 @@ MEMORY
     RAM   (rwx): ORIGIN = 0x20000000, LENGTH = 128K
 }
 
+STACK_SIZE = 4K;
+__stack_start = ORIGIN(RAM) + LENGTH(RAM) - STACK_SIZE;
 __stack_end = ORIGIN(RAM) + LENGTH(RAM);
 
 /* Set minimum size for stack and dynamic memory. */
@@ -22,7 +24,7 @@ SECTIONS
 		. = ALIGN(4);
         /* KEEP(*(.isr_vector)) */
 		. = ALIGN(4);
-	} >FLASH
+	} > FLASH
 
     .text :
     {
