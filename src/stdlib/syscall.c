@@ -9,6 +9,7 @@ static char *heap_end = &_end;
 
 void *_sbrk(int incr)
 {
+	return NULL;
 	char *prev_heap_end = heap_end;
 
 	/* No bound check against stack here — add one if you care

@@ -69,7 +69,6 @@ SECTIONS
 	.dynamic_allocations :
 	{
 		. = ALIGN(4);
-		_end = .;
 		/* end is temporary, used for heap memory */
 		_ssystem_ram = .;
 		. = . + _Min_Leftover_RAM;
