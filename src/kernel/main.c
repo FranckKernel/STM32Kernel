@@ -1,3 +1,4 @@
+#include "clock.h"
 #include "gpio.h"
 #include "intrinsics.h"
 #include "syscall.h"
@@ -22,7 +23,7 @@ void wait_seconds(float seconds)
 	}
 }
 
-#define RCC_AHB1ENR (*(volatile uint32_t *)0x40023830)
+#define RCC_AHB1ENR (*(volatile uint32_t *)(0x40023800 + 0x30))
 #define GPIOA_MODER (*(volatile uint32_t *)0x40020000)
 #define GPIOA_BSRR (*(volatile uint32_t *)0x40020018)
 
@@ -53,20 +54,25 @@ void data_section_init(void)
 int main(void)
 {
 
+	// Copy data from flash to ram
 	data_section_init();
 
-	RCC_AHB1ENR |= (1 << 0); // enable GPIOA clock (bit 0)
-	RCC_AHB1ENR |= (1 << 1);
+	enable_gpio_clock(GPIOA);
+	enable_gpio_clock(GPIOB);
 
-	// wait_seconds(1);
+#ifdef USE_LIBC
 
 	char array[50];
 	int	 b[] = {1, 2, 3, 4, 5, 6};
+	memcpy(array, b, 4);
 
-#ifdef USE_LIBC
-	// memcpy(array, b, 4);
+#	ifdef CALL_PRINT_MALOC
+#		error currently not working
+
+	// LIBC call breaks everything
 	// printf("ABC is working %d\n", 27);
-	char *arr = malloc(100);
+	// char *arr = malloc(100); // This line cause crash
+#	endif
 #endif
 
 	// gpio_struct.a->port_mode.pin5 = GPIO_PORT_MODE_OUTPUT;

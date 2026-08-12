@@ -31,18 +31,16 @@ OBJCOPY=arm-none-eabi-objcopy
 
 DEBUG_OR_RELEASE="${1:-release}"
 QEMU_OR_REAL_MACHINE="${2:-real}"
-MACHINE_BITNESS="${3:-64}"
-MOVE_VM_WINDOW="${4:-move}"
-STOP_AT_ENTRY="${5:-false}"
 
 # ============= DIRECTORIES
 BUILD_DIR="./build"
 
 GPIO="./gpio"
 STDLIB="./stdlib"
+CPU="./cpu"
 
 # ============= FLAGS
-USE_LIBC="false" # or "false"
+USE_LIBC="false" # "true" or "false"
 
 CFLAGS=(
 	"-mcpu=cortex-m4"
@@ -51,7 +49,7 @@ CFLAGS=(
 	"-fno-builtin"
 	"-g"
 	"-std=c23"
-	"-O3"
+	"-O0"
 	"-ffunction-sections"
 	"-fdata-sections"
 )
@@ -91,11 +89,12 @@ mkdir -p "$BUILD_DIR"
 echo "[CC] compiling..."
 
 $CC "${CFLAGS[@]}" -c kernel/startup.s -o "$BUILD_DIR"/startup.o
-$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB"
+$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$CPU"
 
 $CC "${CFLAGS[@]}" -c "./stdlib/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO"
 
 $CC "${CFLAGS[@]}" -c "$GPIO/gpio.c" -o "$BUILD_DIR"/gpio.o
+$CC "${CFLAGS[@]}" -c "$CPU/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO"
 
 echo "[LD] linking..."
 

@@ -1,5 +1,5 @@
 #include <errno.h>
-#include <reent.h>
+// #include <reent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -25,11 +25,11 @@ void *_sbrk(int incr)
 	return (void *)prev_heap_end;
 }
 
-void *_sbrk_r(struct _reent *r, ptrdiff_t incr)
-{
-	(void)r; // unused in a single‑threaded environment
-	return _sbrk(incr);
-}
+// void *_sbrk_r(struct _reent *r, ptrdiff_t incr)
+// {
+// 	(void)r; // unused in a single‑threaded environment
+// 	return _sbrk(incr);
+// }
 
 int _write(int file, char *ptr, int len)
 {
@@ -41,11 +41,11 @@ int _write(int file, char *ptr, int len)
 }
 
 // Reentrant version (used by printf)
-ssize_t _write_r(struct _reent *r, int fd, const void *buf, size_t count)
-{
-	(void)r;
-	return _write(fd, buf, count);
-}
+// ssize_t _write_r(struct _reent *r, int fd, const void *buf, size_t count)
+// {
+// 	(void)r;
+// 	return _write(fd, buf, count);
+// }
 
 int _read(int file, char *ptr, int len)
 {

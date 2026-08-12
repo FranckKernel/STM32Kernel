@@ -7,6 +7,7 @@ static volatile gpio_x_register_t *const GPIOD_Register = (gpio_x_register_t *)G
 static volatile gpio_x_register_t *const GPIOE_Register = (gpio_x_register_t *)GPIO_MMIO_E_BASE;
 static volatile gpio_x_register_t *const GPIOF_Register = (gpio_x_register_t *)GPIO_MMIO_F_BASE;
 static volatile gpio_x_register_t *const GPIOG_Register = (gpio_x_register_t *)GPIO_MMIO_G_BASE;
+static volatile gpio_x_register_t *const GPIOH_Register = (gpio_x_register_t *)GPIO_MMIO_H_BASE;
 
 struct GPIO_REGISTERS gpio_struct = {
 	.a = GPIOA_Register,
@@ -16,6 +17,7 @@ struct GPIO_REGISTERS gpio_struct = {
 	.e = GPIOE_Register,
 	.f = GPIOF_Register,
 	.g = GPIOG_Register,
+	.h = GPIOH_Register,
 };
 
 volatile gpio_x_register_t *gpio[] = {
@@ -26,10 +28,16 @@ volatile gpio_x_register_t *gpio[] = {
 	(volatile gpio_x_register_t *)GPIO_MMIO_E_BASE,
 	(volatile gpio_x_register_t *)GPIO_MMIO_F_BASE,
 	(volatile gpio_x_register_t *)GPIO_MMIO_G_BASE,
+	(volatile gpio_x_register_t *)GPIO_MMIO_H_BASE,
 };
 
 void gpio_port_mode_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_MODE mode)
 {
+	if (letter == GPIOF || letter == GPIOG)
+	{
+		// Error
+		return;
+	}
 	volatile gpio_port_mode_t *const port_modes = &gpio[letter]->port_mode;
 
 	uint32_t port_modes_val = *(volatile uint32_t *)port_modes;
@@ -40,6 +48,11 @@ void gpio_port_mode_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_P
 }
 void gpio_output_type_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_OUTPUT_TYPE output_type)
 {
+	if (letter == GPIOF || letter == GPIOG)
+	{
+		// Error
+		return;
+	}
 	volatile gpio_port_output_type_t *const output_type_ptr = &gpio[letter]->output_type;
 
 	uint32_t output_type_raw = *(volatile uint32_t *)output_type_ptr;
@@ -52,6 +65,11 @@ void gpio_output_type_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO
 
 void gpio_pull_mode_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_PULL_MODE pull_mode)
 {
+	if (letter == GPIOF || letter == GPIOG)
+	{
+		// Error
+		return;
+	}
 	volatile gpio_port_pull_mode_t *const pull_mode_ptr = &gpio[letter]->pull_mode;
 
 	uint32_t pull_mode_raw = *(volatile uint32_t *)pull_mode_ptr;
@@ -65,6 +83,11 @@ void gpio_pull_mode_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_P
 
 void gpio_output_speed_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_OUTPUT_SPEED speed)
 {
+	if (letter == GPIOF || letter == GPIOG)
+	{
+		// Error
+		return;
+	}
 	volatile gpio_port_output_speed_t *const speed_ptr = &gpio[letter]->output_speed;
 
 	uint32_t speed_raw = *(volatile uint32_t *)speed_ptr;
@@ -77,6 +100,11 @@ void gpio_output_speed_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPI
 
 void gpio_write(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_OUTPUT_DATA level)
 {
+	if (letter == GPIOF || letter == GPIOG)
+	{
+		// Error
+		return;
+	}
 	volatile gpio_port_bit_set_reset_t *const set_reset_ptr = &gpio[letter]->bit_set_reset;
 
 	volatile uint32_t *set_reset_ptr_raw = (volatile uint32_t *)set_reset_ptr;
@@ -102,6 +130,11 @@ void reg_setup()
 enum GPIO_INPUT_DATA gpio_read(enum GPIO_PORT_LETTER letter, uint8_t pin)
 {
 
+	if (letter == GPIOF || letter == GPIOG)
+	{
+		// Error
+		return -1;
+	}
 	volatile gpio_port_input_data_t *const input_data = &gpio[letter]->input_data;
 
 	// return input_data->pin1;

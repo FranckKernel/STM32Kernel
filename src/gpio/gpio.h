@@ -14,6 +14,7 @@ static const uint32_t GPIO_MMIO_D_BASE = GPIO_MMIO_A_BASE + 3 * 0x0400;
 static const uint32_t GPIO_MMIO_E_BASE = GPIO_MMIO_A_BASE + 4 * 0x0400;
 static const uint32_t GPIO_MMIO_F_BASE = GPIO_MMIO_A_BASE + 5 * 0x0400;
 static const uint32_t GPIO_MMIO_G_BASE = GPIO_MMIO_A_BASE + 6 * 0x0400;
+static const uint32_t GPIO_MMIO_H_BASE = GPIO_MMIO_A_BASE + 7 * 0x0400;
 
 // GPIO PORT MODE ===========================
 static const uint32_t GPIO_PORT_MODE_ADDRESS_OFFSET = 0x00;
@@ -269,21 +270,14 @@ struct GPIO_REGISTERS
 	volatile gpio_x_register_t *const c;
 	volatile gpio_x_register_t *const d;
 	volatile gpio_x_register_t *const e;
-	volatile gpio_x_register_t *const f;
+
+	volatile gpio_x_register_t *const f; // f and g are reserved
 	volatile gpio_x_register_t *const g;
+
+	volatile gpio_x_register_t *const h;
 };
 
-enum GPIO_PORT_LETTER
-{
-	GPIOA = 0,
-	GPIOB,
-	GPIOC,
-	GPIOD,
-	GPIOE,
-	GPIOF,
-	GPIOG,
-
-};
+#include "gpio_types.h"
 
 // Should i make these public?
 extern struct GPIO_REGISTERS	   gpio_struct;
