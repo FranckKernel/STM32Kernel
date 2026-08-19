@@ -9,7 +9,7 @@ static volatile gpio_x_register_t *const GPIOF_Register = (gpio_x_register_t *)G
 static volatile gpio_x_register_t *const GPIOG_Register = (gpio_x_register_t *)GPIO_MMIO_G_BASE;
 static volatile gpio_x_register_t *const GPIOH_Register = (gpio_x_register_t *)GPIO_MMIO_H_BASE;
 
-struct GPIO_REGISTERS gpio_struct = {
+const struct GPIO_REGISTERS gpio_struct = {
 	.a = GPIOA_Register,
 	.b = GPIOB_Register,
 	.c = GPIOC_Register,

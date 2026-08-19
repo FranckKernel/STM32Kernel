@@ -1,6 +1,7 @@
 #include "clock.h"
 #include "gpio.h"
 #include "intrinsics.h"
+#include "nvic.h"
 #include "syscall.h"
 #include <stdint.h>
 
@@ -82,6 +83,8 @@ int main(void)
 
 	gpio_port_mode_setup(GPIOB, 12, GPIO_PORT_MODE_INPUT);
 	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
+
+	nvic_trigger_irq(24);
 
 	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;
 #define INPUT_LETTER GPIOB

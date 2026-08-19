@@ -1,3 +1,4 @@
+// Mainly use STM32f411re reference manual. Section 8
 #pragma once
 #include <stdbool.h>
 #include <stddef.h>
@@ -280,8 +281,8 @@ struct GPIO_REGISTERS
 #include "gpio_types.h"
 
 // Should i make these public?
-extern struct GPIO_REGISTERS	   gpio_struct;
-extern volatile gpio_x_register_t *gpio[];
+extern const struct GPIO_REGISTERS		 gpio_struct;
+extern const volatile gpio_x_register_t *gpio[];
 
 void gpio_port_mode_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_MODE mode);
 void gpio_output_type_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_OUTPUT_TYPE output_type);

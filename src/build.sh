@@ -30,14 +30,17 @@ DUMP=arm-none-eabi-objdump
 OBJCOPY=arm-none-eabi-objcopy
 
 DEBUG_OR_RELEASE="${1:-release}"
-QEMU_OR_REAL_MACHINE="${2:-real}"
+RENODE_OR_REAL_MACHINE="${2:-real}"
 
 # ============= DIRECTORIES
 BUILD_DIR="./build"
 
 GPIO="./gpio"
 STDLIB="./stdlib"
+COMMON="./common"
 CPU="./cpu"
+RCC="./rcc"
+NVIC="./cpu/nvic"
 
 # ============= FLAGS
 USE_LIBC="false" # "true" or "false"
@@ -49,7 +52,7 @@ CFLAGS=(
 	"-fno-builtin"
 	"-g"
 	"-std=c23"
-	"-O0"
+	"-O3"
 	"-ffunction-sections"
 	"-fdata-sections"
 )
@@ -89,12 +92,16 @@ mkdir -p "$BUILD_DIR"
 echo "[CC] compiling..."
 
 $CC "${CFLAGS[@]}" -c kernel/startup.s -o "$BUILD_DIR"/startup.o
-$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$CPU"
+$CC "${CFLAGS[@]}" -c kernel/vectors.s -o "$BUILD_DIR"/vectors.o
+$CC "${CFLAGS[@]}" -c kernel/isr_default.s -o "$BUILD_DIR"/isr_default.o
+$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC"
 
 $CC "${CFLAGS[@]}" -c "./stdlib/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO"
 
+$CC "${CFLAGS[@]}" -c "./cpu/nvic/nvic.c" -o "$BUILD_DIR"/nvic.o "-I$COMMON"
+
 $CC "${CFLAGS[@]}" -c "$GPIO/gpio.c" -o "$BUILD_DIR"/gpio.o
-$CC "${CFLAGS[@]}" -c "$CPU/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO"
+$CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO"
 
 echo "[LD] linking..."
 
@@ -113,9 +120,10 @@ $OBJCOPY \
 	"$BUILD_DIR/$TARGET.elf" \
 	"$BUILD_DIR/$TARGET.bin"
 
-$DUMP "$BUILD_DIR/$TARGET.elf" -D >"$BUILD_DIR/$TARGET.dump"
+$DUMP "$BUILD_DIR/nvic.o" -D -h >"$BUILD_DIR/nvic.dump"
+$DUMP "$BUILD_DIR/$TARGET.elf" -D -h >"$BUILD_DIR/$TARGET.dump"
 
-if [[ "$QEMU_OR_REAL_MACHINE" == "real" ]]; then
+if [[ "$RENODE_OR_REAL_MACHINE" == "real" ]]; then
 	echo "[RUN]: Flashing the kernel"
 	st-flash write "$BUILD_DIR/$TARGET.bin" 0x8000000
 	st-flash reset
