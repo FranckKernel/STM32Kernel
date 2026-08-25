@@ -33,6 +33,10 @@
 
 #	include <stdint.h>
 
+#	ifndef __STM32F411xE_H
+// #		include "stm32f411xe.h"
+#	endif
+
 #	ifdef __cplusplus
 extern "C"
 {
@@ -60,7 +64,7 @@ extern "C"
 	  @{
 	 */
 
-#	include "cmsis_version.h"
+#	include "./others/cmsis_version.h"
 
 	/* CMSIS CM4 definitions */
 
@@ -167,7 +171,7 @@ extern "C"
 
 #	endif
 
-#	include "cmsis_compiler.h" /* CMSIS compiler specific defines */
+#	include "./others/cmsis_compiler.h" /* CMSIS compiler specific defines */
 
 #	ifdef __cplusplus
 }
@@ -184,6 +188,8 @@ extern "C"
 extern "C"
 {
 #		endif
+
+#		define __CHECK_DEVICE_DEFINES
 
 /* check device defines and use defaults */
 #		if defined __CHECK_DEVICE_DEFINES
@@ -2031,7 +2037,7 @@ extern "C"
 
 #		if defined(__MPU_PRESENT) && (__MPU_PRESENT == 1U)
 
-#			include "m-profile/armv7m_mpu.h"
+#			include "./others/m-profile/armv7m_mpu.h"
 
 #		endif
 

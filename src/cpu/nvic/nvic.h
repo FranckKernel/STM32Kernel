@@ -220,3 +220,4 @@ void nvic_enable_irq(uint8_t irq_number);
 void nvic_disable_irq(uint8_t irq_number);
 
 void nvic_trigger_irq(uint8_t irq_number);
+// need interrupt setup
