@@ -26,6 +26,23 @@ typedef struct
 
 typedef struct
 {
+	void (*func)(void);
+	double period_ms;
+	/* We want the task to be run each N ms. So we need to know what the timer frequency is.
+	   f = 1 / (T * 0.001) = 1000 / T
+
+	   frequency_divider = Timer Frequency / task frequency
+	   Ie:
+	   50 Khz / 1 Khz
+	   frequency_divider= 50
+
+	*/
+	uint8_t priority;
+
+} task_public_t;
+
+typedef struct
+{
 	task_t	tasks[16];
 	uint8_t task_count;
 } task_list_t;
@@ -33,7 +50,8 @@ typedef struct
 extern task_list_t task_list;
 
 // The functions :
-bool task_add(task_t task);
+// task_t task_create(task_public_t data);
+bool task_add(task_public_t task);
 void task_reorder();
 
 void simple_task();

@@ -1,8 +1,22 @@
 #include "task.h"
 
-bool task_add(task_t task)
+uint32_t timer_frequency = 50'000;
+
+task_t task_create(task_public_t data)
 {
-	uint8_t c = task_list.task_count;
+	double period_ms = data.period_ms;
+
+	uint32_t task_frequency = 1 / period_ms;
+	uint32_t divider		= timer_frequency / task_frequency;
+
+	task_t task = {.func = data.func, .priority = data.priority, .frequency_divider = divider, .last_run_tick = 0, .ready = false};
+	return task;
+}
+
+bool task_add(task_public_t data)
+{
+	task_t	task = task_create(data);
+	uint8_t c	 = task_list.task_count;
 	c++;
 	if (c > MAX_TASK)
 	{

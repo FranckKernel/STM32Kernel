@@ -95,8 +95,8 @@ int main(void)
 
 	// Create the task, and put them on the task_list
 
-	task_add((task_t){.func = simple_task, .frequency_divider = 1000, .last_run_tick = 0, .ready = true, .priority = 10});
-	task_add((task_t){.func = simple_task2, .frequency_divider = 10000, .last_run_tick = 0, .ready = true, .priority = 3});
+	task_add((task_public_t){.func = simple_task, .period_ms = 4, .priority = 3});
+	task_add((task_public_t){.func = simple_task2, .period_ms = 0.1, .priority = 10});
 	task_reorder();
 	// reorder the tasks
 
@@ -110,6 +110,7 @@ int main(void)
 	// gpio_port_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_MODE_INPUT);
 	// gpio_pull_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_PULL_MODE_UP);
 
+	// The main loop
 	while (1)
 	{
 		uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);
