@@ -1,7 +1,7 @@
 #pragma once
 // Mainly use STM32f411re reference manual
 
-// RTC : Reset and Clock Control
+// RCC : Reset and Clock Control
 // RTC: Real Time Clock
 // SW: System Clock switch
 // Trapeze symbol: Multiplexer (Selector)
@@ -51,23 +51,6 @@ More needed: More work/learning needed about it
    Crystal: More accurate then RC type clock
 */
 
-// =================================== PLL: ===============================
-/*
-   Right after the multiplexer, there's a divider by M. (kinda wierd). It chose M for alphabetic nearby-ness.  MN PQ R
-
-   VCO: Voltage controlled Oscillator. The internal oscillator circuit that runs at a high frequency.
-		| VCO is in the middle stage of the calculation
-		f_VCO = f_input * N/M
-   N : The feedback multiplier. Multiplies the clock frequency by N.
-
-   PRQ. The final stage that goes into the output.
-
-   PLL ClK = F_VCO / P   		| PLL CLK goes to SysClock
-   PLL48CLK = F_VCO / Q			| Goes to USB, RNG and SDIO. Goal is to hit 48 MHz so usb works
-   PLLR = F_VCO / R				| On other boards, connected to I2S, SAI or DSI Clocks
-
-*/
-
 // 1 ============================ RCC Clock Control register (RCC_CR)
 
 typedef struct
@@ -92,8 +75,8 @@ typedef struct
 	uint32_t pll_on : 1;	// bit 24, rw
 	uint32_t pll_ready : 1; // bit 25, r
 
-	uint32_t pll2s_on : 1;	  // bit 26, rw
-	uint32_t pll2s_ready : 1; // bit 27, r
+	uint32_t plli2s_on : 1;	   // bit 26, rw
+	uint32_t plli2s_ready : 1; // bit 27, r
 
 	uint32_t _reserved3 : 4; // bit 28-31
 } rcc_cr_t;
@@ -102,9 +85,58 @@ _Static_assert(sizeof(rcc_cr_t) == sizeof(uint32_t), "rcc_cr_t : The struct is t
 
 // 2 ============================ RCC PLL configuration register (RCC_PLLCFGR)
 
+// =================================== PLL: ===============================
+/*
+   Right after the multiplexer, there's a divider by M. (kinda wierd). It chose M for alphabetic nearby-ness.  MN PQ R
+
+   VCO: Voltage controlled Oscillator. The internal oscillator circuit that runs at a high frequency.
+		| VCO is in the middle stage of the calculation
+		f_VCO = f_input * N/M
+   N : The feedback multiplier. Multiplies the clock frequency by N.
+
+   PRQ. The final stage that goes into the output.
+
+   PLL ClK = F_VCO / P   		| PLL CLK goes to SysClock
+   PLL48CLK = F_VCO / Q			| Goes to USB, RNG and SDIO. Goal is to hit 48 MHz so usb works
+   PLLR = F_VCO / R				| On other boards, connected to I2S, SAI or DSI Clocks
+
+*/
+
+enum pll_p_values_t
+{
+	pllp_2 = 0b00,
+	pplp_4 = 0b01,
+	pllp_6 = 0b10,
+	pllp_8 = 0b11
+};
+
+enum pll_src_values_t
+{
+	pll_src_hsi = 0b0,
+	pll_src_hse = 0b1,
+
+};
+
 typedef struct
 {
-	uint32_t raw;
+	uint32_t m_divider : 5;		  // 0-5 (rw) 0 and 1 are wrong values
+	uint32_t n_multiplicator : 8; // 6-14 (rw) 0 and 1 are wrong values
+	/*
+	   50 ≤PLLN ≤432
+	*/
+	uint32_t _reserved1 : 1; // 15
+
+	enum pll_p_values_t p_divisor : 2; // 16-17 (rw)
+
+	uint32_t _reserved2 : 4; // (18-21) (r only)
+
+	enum pll_src_values_t src : 1; // 22(rw)
+
+	uint32_t _reserved3 : 1; // 23 (r only)
+
+	uint32_t q_divisor : 4; // 24-27 (rw)
+
+	uint32_t _reserved4 : 4; // 28-31 (r only)
 } rcc_pllcfgr_t;
 
 _Static_assert(sizeof(rcc_pllcfgr_t) == sizeof(uint32_t), "rcc_pllcfgr_t : The struct is the wrong size!");
@@ -149,7 +181,7 @@ enum ahb_prescaler_values_t
 };
 
 // ppre1 = aPb PREsacler 1 (low)
-enum apb_prescaler_low_values_t
+enum apb1_prescaler_values_t
 {
 	// Caution :
 	/*
@@ -157,16 +189,16 @@ enum apb_prescaler_low_values_t
 		The clocks are divided with the new prescaler factor from 1 to 16 AHB cycles after
 		PPRE1 write.
 	*/
-	apb_prescaler_low_divide_1	= 0b000, // not divided, 0b0xx works too
-	apb_prescaler_low_divide_2	= 0b100,
-	apb_prescaler_low_divide_4	= 0b101,
-	apb_prescaler_low_divide_8	= 0b110,
-	apb_prescaler_low_divide_16 = 0b111,
+	apb1_prescaler_divide_1	 = 0b000, // not divided, 0b0xx works too
+	apb1_prescaler_divide_2	 = 0b100,
+	apb1_prescaler_divide_4	 = 0b101,
+	apb1_prescaler_divide_8	 = 0b110,
+	apb1_prescaler_divide_16 = 0b111,
 
 };
 
 // ppre2 = aPb PREsacler 2 (high)
-enum apb_prescaler_high_values_t
+enum apb2_prescaler_values_t
 {
 	// Caution :
 	/*
@@ -174,11 +206,11 @@ enum apb_prescaler_high_values_t
 		The clocks are divided with the new prescaler factor from 1 to 16 AHB cycles after
 		PPRE2 write.
 	*/
-	apb_prescaler_high_divide_1	 = 0b000, // not divided, 0b0xx works too
-	apb_prescaler_high_divide_2	 = 0b100,
-	apb_prescaler_high_divide_4	 = 0b101,
-	apb_prescaler_high_divide_8	 = 0b110,
-	apb_prescaler_high_divide_16 = 0b111,
+	apb2_prescaler_divide_1	 = 0b000, // not divided, 0b0xx works too
+	apb2_prescaler_divide_2	 = 0b100,
+	apb2_prescaler_divide_4	 = 0b101,
+	apb2_prescaler_divide_8	 = 0b110,
+	apb2_prescaler_divide_16 = 0b111,
 
 };
 
@@ -256,8 +288,8 @@ typedef struct
 
 	uint32_t _reserved1 : 2; // bit 8-9
 
-	enum apb_prescaler_low_values_t	 apb_prescaler_low : 3;	 // bit 10-12
-	enum apb_prescaler_high_values_t apb_prescaler_high : 3; // bit 13-15
+	enum apb1_prescaler_values_t apb1_prescaler : 3; // bit 10-12
+	enum apb2_prescaler_values_t apb2_prescaler : 3; // bit 13-15
 
 	enum hse_division_factor_t rtc_pre_when_hse : 5; // bit 16 - 20
 
@@ -329,7 +361,7 @@ typedef struct
 	uint32_t dma1_clock_enable : 1; // bit 21
 	uint32_t dma2_clock_enable : 1; // bit 22
 
-	uint32_t _reserved_4 : 8; // bit 23-31
+	uint32_t _reserved_4 : 9; // bit 23-31
 
 } rcc_ahb1enr_t;
 
@@ -366,8 +398,8 @@ typedef struct
 	uint32_t _reserved4 : 3; // bit 18-20
 
 	uint32_t i2c1_enable : 1; // bit 21
-	uint32_t i2c3_enable : 1; // bit 22
-	uint32_t i2c2_enable : 1; // bit 23
+	uint32_t i2c2_enable : 1; // bit 22
+	uint32_t i2c3_enable : 1; // bit 23
 
 	uint32_t _reserved5 : 4; // bit 24-27
 
@@ -548,3 +580,6 @@ extern volatile rcc_register_t *const rcc;
 
 #include "gpio_types.h"
 void enable_gpio_clock(enum GPIO_PORT_LETTER letter);
+void enable_timer2_hsi();
+void enable_timer2();
+void switch_to_pll();

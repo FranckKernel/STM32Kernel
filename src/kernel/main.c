@@ -84,6 +84,10 @@ int main(void)
 	gpio_port_mode_setup(GPIOB, 12, GPIO_PORT_MODE_INPUT);
 	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
 
+	// configure timer 2
+	switch_to_pll();
+	enable_timer2();
+	nvic_enable_irq(24);
 	nvic_trigger_irq(24);
 
 	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;

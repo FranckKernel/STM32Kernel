@@ -183,6 +183,10 @@ typedef struct
 	uint8_t irq_4xN_plus2;
 	uint8_t irq_4xN_plus3;
 } nvic_ipr_register_t;
+// this does interupt priority register ... _ register
+/*
+Which is repeat, Idk how I feel about that!
+*/
 
 typedef struct
 {
