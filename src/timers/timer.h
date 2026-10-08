@@ -61,8 +61,46 @@ static const uint32_t TIMER5_MMIO_BASE = TIMER2_MMIO_BASE + 3 * 0x0400;
 
 // Control Register 1 (CR1) ===========================
 
+enum cr1_direction
+{
+	upcounter	= 0b0,
+	downcounter = 0b1,
+};
+
+enum cr1_center_aligned_mode_selection
+{
+	edge_aligned_mode				 = 0b00,
+	center_aligned_mode_compare_down = 0b01, // These are used for output compare
+	center_aligned_mode_compare_up	 = 0b10, // They bounce up and down between 0 and arr
+	center_aligned_mode_compare_both = 0b11,
+	// Can only switch mode while counter is disabled
+};
+
+enum cr1_clock_division
+{
+	ckd_times_1 = 0b00,
+	ckd_times_2 = 0b01,
+	ckd_times_4 = 0b10,
+};
+
 typedef struct
 {
+	uint32_t counter_enable : 1;		// bit 0 (rw)
+	uint32_t update_disable : 1;		// bit 1 (rw)
+	uint32_t update_request_source : 1; // bit  2 ( rw)
+	/*
+	   0: counter under/overflow, setting the UG bit or  update generation through slave mode controller ... can generate an update
+	   interrupt or DMA request
+
+	   1: Only counter under/overflow generates an interrupt or DMA request
+	*/
+	uint32_t							   one_pulse_mode : 1;		// bit 3 (rw), set so it's one shot mode, else counter loop
+	enum cr1_direction					   direction : 1;			// bit 4 (rw). 0 = upcounter, 1 = downcounter
+	enum cr1_center_aligned_mode_selection center_aligned_mode : 2; // bit (5-6) (rw)
+	uint32_t schedule_arr_change_not_right_now : 1; // bit 7 (rw) {When you change arr, change it right now, or at the next update event}
+	enum cr1_clock_division clock_division : 2;		// bit 8-9 (rw). Keep it at 0b00, or x1 for me
+
+	uint32_t _reserved : 22; // bit 10 - 31
 } timer_cr1_t;
 _Static_assert(sizeof(timer_cr1_t) == sizeof(uint32_t), "timer_cr1_t is not the proper size of 32 bit!");
 
@@ -82,7 +120,7 @@ typedef struct
 	uint32_t	ccer;		  // Capture/compare enable
 	uint32_t	cnt;		  // Counter
 	uint32_t	psc;		  // Prescaler
-	uint32_t	arr;		  // Auto-reload
+	uint32_t	arr;		  // Auto-reload. (Simple 32 bit value. 16 bit for tim3 and tim4)
 	uint32_t	reserved0;
 	uint32_t	ccr1; // Capture/compare 1
 	uint32_t	ccr2; // Capture/compare 2
@@ -99,3 +137,5 @@ extern volatile timer_registers_t *const timers[];
 
 #include "timer_types.h"
 // functions using timer_types.h
+
+void configure_timer2();

@@ -9,3 +9,7 @@ volatile timer_registers_t *const timers[] = {
 void Timer2Handler(void)
 {
 }
+
+void configure_timer2()
+{
+}

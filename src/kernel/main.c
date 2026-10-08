@@ -90,10 +90,10 @@ int main(void)
 
 	nvic_enable_irq(TIM2_IRQn);
 	switch_to_pll();
-	enable_timer2();
-
 	nvic_trigger_irq(TIM2_IRQn);
-	timers[TIMER2]->arr = 1;
+
+	configure_timer2();
+	enable_timer2();
 
 	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;
 #define INPUT_LETTER GPIOB

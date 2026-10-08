@@ -46,7 +46,7 @@ typedef struct
 	enum GPIO_PORT_MODE pin15 : 2;
 
 } gpio_port_mode_t;
-_Static_assert(sizeof(gpio_port_mode_t) == sizeof(uint32_t), "gpio_port_mode_t : We are fucked!");
+_Static_assert(sizeof(gpio_port_mode_t) == sizeof(uint32_t), "gpio_port_mode_t is not the proper size of 32 bit!");
 
 // GPIO PORT OUTPUT TYPE  ===========================
 static const uint32_t GPIO_PORT_OUTPUT_TYPE = 0x04;
@@ -76,7 +76,7 @@ typedef struct
 	uint32_t				   reserved : 16;
 
 } gpio_port_output_type_t;
-_Static_assert(sizeof(gpio_port_output_type_t) == sizeof(uint32_t), "gpio_port_output_type_t : We are fucked!");
+_Static_assert(sizeof(gpio_port_output_type_t) == sizeof(uint32_t), "gpio_port_output_type_t is not the proper size of 32 bit!");
 
 // GPIO PORT OUTPUT SPEED  ===========================
 static const uint32_t GPIO_PORT_OUTPUT_SPEED_ADDRESS_OFFSET = 0x08;
@@ -107,7 +107,7 @@ typedef struct
 	enum GPIO_PORT_OUTPUT_SPEED pin15 : 2;
 
 } gpio_port_output_speed_t;
-_Static_assert(sizeof(gpio_port_output_speed_t) == sizeof(uint32_t), "gpio_port_output_speed_t : We are fucked!");
+_Static_assert(sizeof(gpio_port_output_speed_t) == sizeof(uint32_t), "gpio_port_output_speed_t is not the proper size of 32 bit!");
 
 // GPIO PORT PULL UP/ PULL MODE MODE  ===========================
 static const uint32_t GPIO_PORT_PULL_MODE_ADDRESS_OFFSET = 0x0C;
@@ -138,7 +138,7 @@ typedef struct
 	enum GPIO_PORT_PULL_MODE pin15 : 2;
 
 } gpio_port_pull_mode_t;
-_Static_assert(sizeof(gpio_port_pull_mode_t) == sizeof(uint32_t), "gpio_port_pull_mode_t : We are fucked!");
+_Static_assert(sizeof(gpio_port_pull_mode_t) == sizeof(uint32_t), "gpio_port_pull_mode_t is not the proper size of 32 bit!");
 
 // GPIO PORT INPUT DATA  ===========================
 static const uint32_t GPIO_PORT_INPUT_DATA_ADDRESS_OFFSET = 0x10;
@@ -168,7 +168,7 @@ typedef struct
 	uint32_t			 reserved : 16;
 
 } gpio_port_input_data_t;
-_Static_assert(sizeof(gpio_port_input_data_t) == sizeof(uint32_t), "gpio_port_input_data_t : We are fucked!");
+_Static_assert(sizeof(gpio_port_input_data_t) == sizeof(uint32_t), "gpio_port_input_data_t is not the proper size of 32 bit!");
 
 // GPIO PORT OUTPUT DATA  ===========================
 static const uint32_t GPIO_PORT_OUTPUT_DATA_ADDRESS_OFFSET = 0x14;
@@ -198,7 +198,7 @@ typedef struct
 	uint32_t			  reserved : 16;
 
 } gpio_port_output_data_t;
-_Static_assert(sizeof(gpio_port_output_data_t) == sizeof(uint32_t), "gpio_port_output_data_t : We are fucked!");
+_Static_assert(sizeof(gpio_port_output_data_t) == sizeof(uint32_t), "gpio_port_output_data_t is not the proper size of 32 bit!");
 
 // GPIO PORT BIT SET/RESET  ===========================
 static const uint32_t GPIO_PORT_BIT_SET_RESET_OFFSET = 0x18;
@@ -250,7 +250,7 @@ typedef struct
 	enum GPIO_PORT_BIT_RESET pin15_reset : 1;
 
 } gpio_port_bit_set_reset_t;
-_Static_assert(sizeof(gpio_port_bit_set_reset_t) == sizeof(uint32_t), "gpio_port_bit_set_reset_t : We are fucked!");
+_Static_assert(sizeof(gpio_port_bit_set_reset_t) == sizeof(uint32_t), "gpio_port_bit_set_reset_t is not the proper size of 32 bit!");
 // ======================================== The meta struct:
 typedef struct
 {
