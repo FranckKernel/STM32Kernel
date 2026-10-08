@@ -77,7 +77,7 @@ vector_table:
     .word Default_Handler    /* 26 TIM1_TRG_COM / TIM11 */
     .word Default_Handler    /* 27 TIM1_CC */
 
-    .word Default_Handler    /* 28 TIM2 */
+    .word Timer2Handler    /* 28 TIM2 */
 
     .word Default_Handler    /* 29 TIM3 */
     .word Default_Handler    /* 30 TIM4 */

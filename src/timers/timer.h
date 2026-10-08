@@ -63,30 +63,36 @@ static const uint32_t TIMER5_MMIO_BASE = TIMER2_MMIO_BASE + 3 * 0x0400;
 
 typedef struct
 {
-	uint32_t cr1;		   // Control register 1
-	uint32_t cr2;		   // Control register 2
-	uint32_t smcr;		   // Slave mode control
-	uint32_t dier;		   // Dma / interrupt enable
-	uint32_t sr;		   // Status register
-	uint32_t egr;		   // Event generation
-	uint16_t ccmr1_output; // Capture/compare mode 1
-	uint16_t ccmr1_input;  // Capture/compare mode 1
-	uint16_t ccmr2_output; // Capture/compare mode 2
-	uint16_t ccmr2_input;  // Capture/compare mode 2
-	uint32_t ccer;		   // Capture/compare enable
-	uint32_t cnt;		   // Counter
-	uint32_t psc;		   // Prescaler
-	uint32_t arr;		   // Auto-reload
-	uint32_t reserved0;
-	uint32_t ccr1; // Capture/compare 1
-	uint32_t ccr2; // Capture/compare 2
-	uint32_t ccr3; // Capture/compare 3
-	uint32_t ccr4; // Capture/compare 4
-	uint32_t reserved1;
-	uint32_t dcr;  // Dma control
-	uint32_t dmar; // Dma address
-	uint32_t tim2_or;
-	uint32_t tim5_or;
+} timer_cr1_t;
+_Static_assert(sizeof(timer_cr1_t) == sizeof(uint32_t), "timer_cr1_t is not the proper size of 32 bit!");
+
+// The meta struct
+typedef struct
+{
+	timer_cr1_t cr1;		  // Control register 1
+	uint32_t	cr2;		  // Control register 2
+	uint32_t	smcr;		  // Slave mode control
+	uint32_t	dier;		  // Dma / interrupt enable
+	uint32_t	sr;			  // Status register
+	uint32_t	egr;		  // Event generation
+	uint16_t	ccmr1_output; // Capture/compare mode 1
+	uint16_t	ccmr1_input;  // Capture/compare mode 1
+	uint16_t	ccmr2_output; // Capture/compare mode 2
+	uint16_t	ccmr2_input;  // Capture/compare mode 2
+	uint32_t	ccer;		  // Capture/compare enable
+	uint32_t	cnt;		  // Counter
+	uint32_t	psc;		  // Prescaler
+	uint32_t	arr;		  // Auto-reload
+	uint32_t	reserved0;
+	uint32_t	ccr1; // Capture/compare 1
+	uint32_t	ccr2; // Capture/compare 2
+	uint32_t	ccr3; // Capture/compare 3
+	uint32_t	ccr4; // Capture/compare 4
+	uint32_t	reserved1;
+	uint32_t	dcr;  // Dma control
+	uint32_t	dmar; // Dma address
+	uint32_t	tim2_or;
+	uint32_t	tim5_or;
 } timer_registers_t;
 
 extern volatile timer_registers_t *const timers[];

@@ -5,3 +5,7 @@ volatile timer_registers_t *const timers[] = {
 	(volatile timer_registers_t *)TIMER4_MMIO_BASE,
 	(volatile timer_registers_t *)TIMER5_MMIO_BASE,
 };
+
+void Timer2Handler(void)
+{
+}
