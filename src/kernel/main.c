@@ -4,6 +4,7 @@
 #include "intrinsics.h"
 #include "nvic.h"
 #include "syscall.h"
+#include "task.h"
 #include "timer.h"
 #include <stdint.h>
 
@@ -92,8 +93,16 @@ int main(void)
 	switch_to_pll();
 	nvic_trigger_irq(TIM2_IRQn);
 
+	// Create the task, and put them on the task_list
+
+	task_add((task_t){.func = simple_task, .frequency_divider = 1000, .last_run_tick = 0, .ready = true, .priority = 10});
+	task_add((task_t){.func = simple_task2, .frequency_divider = 10000, .last_run_tick = 0, .ready = true, .priority = 3});
+	task_reorder();
+	// reorder the tasks
+
 	configure_timer2();
 	enable_timer2();
+	// This basically start the scheduler
 
 	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;
 #define INPUT_LETTER GPIOB

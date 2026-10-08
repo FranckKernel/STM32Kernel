@@ -6,10 +6,6 @@ volatile timer_registers_t *const timers[] = {
 	(volatile timer_registers_t *)TIMER5_MMIO_BASE,
 };
 
-void Timer2Handler(void)
-{
-}
-
 void configure_timer2()
 {
 }
