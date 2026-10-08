@@ -282,7 +282,7 @@ struct GPIO_REGISTERS
 
 // Should i make these public?
 extern const struct GPIO_REGISTERS		 gpio_struct;
-extern const volatile gpio_x_register_t *gpio[];
+extern volatile gpio_x_register_t *const gpio[];
 
 void gpio_port_mode_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_MODE mode);
 void gpio_output_type_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_PORT_OUTPUT_TYPE output_type);

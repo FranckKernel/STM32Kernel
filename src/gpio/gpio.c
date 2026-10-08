@@ -20,7 +20,7 @@ const struct GPIO_REGISTERS gpio_struct = {
 	.h = GPIOH_Register,
 };
 
-volatile gpio_x_register_t *gpio[] = {
+volatile gpio_x_register_t *const gpio[] = {
 	(volatile gpio_x_register_t *)GPIO_MMIO_A_BASE,
 	(volatile gpio_x_register_t *)GPIO_MMIO_B_BASE,
 	(volatile gpio_x_register_t *)GPIO_MMIO_C_BASE,

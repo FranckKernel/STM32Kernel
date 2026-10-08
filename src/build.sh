@@ -39,6 +39,7 @@ GPIO="./gpio"
 STDLIB="./stdlib"
 COMMON="./common"
 CPU="./cpu"
+TIMERS="./timers"
 RCC="./rcc"
 NVIC="./cpu/nvic"
 
@@ -94,13 +95,14 @@ echo "[CC] compiling..."
 $CC "${CFLAGS[@]}" -c kernel/startup.s -o "$BUILD_DIR"/startup.o
 $CC "${CFLAGS[@]}" -c kernel/vectors.s -o "$BUILD_DIR"/vectors.o
 $CC "${CFLAGS[@]}" -c kernel/isr_default.s -o "$BUILD_DIR"/isr_default.o
-$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC"
+$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS"
 
 $CC "${CFLAGS[@]}" -c "./stdlib/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO"
 
 $CC "${CFLAGS[@]}" -c "./cpu/nvic/nvic.c" -o "$BUILD_DIR"/nvic.o "-I$COMMON"
 
 $CC "${CFLAGS[@]}" -c "$GPIO/gpio.c" -o "$BUILD_DIR"/gpio.o
+$CC "${CFLAGS[@]}" -c "$TIMERS/timer.c" -o "$BUILD_DIR"/timer.o
 $CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO"
 
 echo "[LD] linking..."

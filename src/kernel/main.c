@@ -1,8 +1,10 @@
 #include "clock.h"
 #include "gpio.h"
+#include "interrupt_vectors.h"
 #include "intrinsics.h"
 #include "nvic.h"
 #include "syscall.h"
+#include "timer.h"
 #include <stdint.h>
 
 #ifdef USE_LIBC
@@ -85,10 +87,13 @@ int main(void)
 	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
 
 	// configure timer 2
+
+	nvic_enable_irq(TIM2_IRQn);
 	switch_to_pll();
 	enable_timer2();
-	nvic_enable_irq(24);
-	nvic_trigger_irq(24);
+
+	nvic_trigger_irq(TIM2_IRQn);
+	timers[TIMER2]->arr = 1;
 
 	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;
 #define INPUT_LETTER GPIOB
