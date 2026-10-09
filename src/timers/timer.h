@@ -134,7 +134,7 @@ _Static_assert(sizeof(timer_autoreload_t) == sizeof(uint32_t), "timer_autoreload
 typedef struct
 {
 	// rc_w0: Read or clear by writting 0. Hardware write 1
-	uint16_t update_interrupt_pending : 1; // bit 0
+	uint16_t update_interrupt_pending : 1; // bit 0. Set by hardware on update event, cleared by software
 	uint16_t capture_compared_1 : 1;	   // bit 1 (rc_w0), default 0
 	uint16_t capture_compared_2 : 1;	   // bit 2 (rc_w0), default 0
 	uint16_t capture_compared_3 : 1;	   // bit 3 (rc_w0), default 0
@@ -223,7 +223,7 @@ typedef struct
 } timer_event_generation_t;
 _Static_assert(sizeof(timer_event_generation_t) == sizeof(uint32_t), "timer_event_generation_t is not the proper size of 32 bit!");
 
-// ============================= EGR (TIMER x Event Generation Register)
+// ============================= CCMR1 (TIMER x Capture/Compare 1 Mode Register )
 enum cc1s_values_1
 {
 	// capture compare channel 1
@@ -318,6 +318,7 @@ typedef struct __attribute__((packed))
 
 _Static_assert(sizeof(timer_ccr1_input_t) == sizeof(uint16_t), "timer_event_generation_t is not the proper size of 16 bit!");
 
+// ============================= CCMR2 (TIMER x Capture/Compare 2 Mode Register )
 enum cc3s_values_2
 {
 	// capture compare channel 1
@@ -369,33 +370,111 @@ typedef struct __attribute__((packed))
 } timer_ccr2_input_t;
 _Static_assert(sizeof(timer_ccr2_input_t) == sizeof(uint16_t), "timer_event_generation_t is not the proper size of 16 bit!");
 
+// ============================= CCER (TIMER x Capture/Compare Enable Register )
+/* 3-bit field spans CCxNP (bit 3), reserved (bit 2), CCxP (bit 1).
+   The reserved bit must always be 0, so valid values are 0b?0?.
+   Bit 2 is therefore always 0 in every named constant below. */
+
+enum ccxp_output_polarity
+{
+	/* Output mode: only CCxP matters; CCxNP must be 0. */
+	ccxp_out_active_high = 0b000, /* CCxNP=0, res=0, CCxP=0 */
+	ccxp_out_active_low	 = 0b001, /* CCxNP=0, res=0, CCxP=1 */
+};
+
+enum ccxp_input_polarity
+{
+	/* Input mode: CCxNP and CCxP together select edge sensitivity.
+	   Value 0b010 (CCxNP=1, CCxP=0) is reserved — skip it. */
+	ccxp_in_rising	= 0b000, /* CCxNP=0, res=0, CCxP=0 → rising edge */
+	ccxp_in_falling = 0b001, /* CCxNP=0, res=0, CCxP=1 → falling edge */
+	ccxp_in_both	= 0b101, /* CCxNP=1, res=0, CCxP=1 → both edges */
+};
+
+typedef struct __attribute__((packed))
+{
+	uint16_t				  cc1_enable : 1;	// bit 0;
+	enum ccxp_output_polarity cc1_polarity : 3; // bits 1-3;
+
+	uint16_t				  cc2_enable : 1;	// bit 4;
+	enum ccxp_output_polarity cc2_polarity : 3; // bits 5-7;
+
+	uint16_t				  cc3_enable : 1;	// bit 8;
+	enum ccxp_output_polarity cc3_polarity : 3; // bits 9-11;
+
+	uint16_t				  cc4_enable : 1;	// bit 12;
+	enum ccxp_output_polarity cc4_polarity : 3; // bits 13-15;
+
+	// output: 1 → OCx signal is output on the pin, else not active
+	// input : 1 → capture into TIMx_CCRx is enabled
+} timer_ccer_output_t;
+
+typedef struct __attribute__((packed))
+{
+	uint16_t				 cc1_enable : 1;   // bit 0;
+	enum ccxp_input_polarity cc1_polarity : 3; // bits 1-3;
+
+	uint16_t				 cc2_enable : 1;   // bit 4;
+	enum ccxp_input_polarity cc2_polarity : 3; // bits 5-7;
+
+	uint16_t				 cc3_enable : 1;   // bit 8;
+	enum ccxp_input_polarity cc3_polarity : 3; // bits 9-11;
+
+	uint16_t				 cc4_enable : 1;   // bit 12;
+	enum ccxp_input_polarity cc4_polarity : 3; // bits 13-15;
+
+	// output: 1 → OCx signal is output on the pin, else not active
+	// input : 1 → capture into TIMx_CCRx is enabled
+} timer_ccer_input_t;
+
+typedef struct
+{
+	union
+	{
+		uint16_t			raw;
+		timer_ccer_output_t output;
+		timer_ccer_input_t	input;
+	};
+	uint16_t reserved;
+} timer_capture_compare_enable_t;
+
+_Static_assert(sizeof(timer_capture_compare_enable_t) == sizeof(uint32_t), "timer_event_generation_t is not the proper size of 16 bit!");
+
+// CCRn
+
+typedef union
+{
+	uint16_t low16;
+	uint32_t full32;
+} capture_compare_t;
+
 // ============================================================== THE META STRUCT =====================
 typedef struct
 {
-	timer_cr1_t				 cr1;		   // Control register 1
-	uint32_t				 cr2;		   // Control register 2
-	uint32_t				 smcr;		   // Slave mode control
-	timer_interrupt_enable_t dier;		   // Dma / interrupt enable
-	uint32_t				 sr;		   // Status register
-	timer_event_generation_t egr;		   // Event generation
-	timer_ccmr1_output_t	 ccmr1_output; // Capture/compare mode 1
-	timer_ccr1_input_t		 ccmr1_input;  // Capture/compare mode 1
-	timer_ccmr1_output_t	 ccmr2_output; // Capture/compare mode 2
-	timer_ccr2_input_t		 ccmr2_input;  // Capture/compare mode 2
-	uint32_t				 ccer;		   // Capture/compare enable
-	timer_counter_t			 cnt;		   // Counter
-	timer_prescaler_t		 psc;		   // Prescaler
-	timer_autoreload_t		 arr;		   // Auto-reload. (Simple 32 bit value. 16 bit for tim3 and tim4)
-	uint32_t				 reserved0;
-	uint32_t				 ccr1; // Capture/compare 1
-	uint32_t				 ccr2; // Capture/compare 2
-	uint32_t				 ccr3; // Capture/compare 3
-	uint32_t				 ccr4; // Capture/compare 4
-	uint32_t				 reserved1;
-	uint32_t				 dcr;  // Dma control
-	uint32_t				 dmar; // Dma address
-	uint32_t				 tim2_or;
-	uint32_t				 tim5_or;
+	timer_cr1_t					   cr1;			 // Control register 1
+	uint32_t					   cr2;			 // Control register 2
+	uint32_t					   smcr;		 // Slave mode control
+	timer_interrupt_enable_t	   dier;		 // Dma / interrupt enable
+	timer_status_t				   sr;			 // Status register
+	timer_event_generation_t	   egr;			 // Event generation
+	timer_ccmr1_output_t		   ccmr1_output; // Capture/compare mode 1
+	timer_ccr1_input_t			   ccmr1_input;	 // Capture/compare mode 1
+	timer_ccmr1_output_t		   ccmr2_output; // Capture/compare mode 2
+	timer_ccr2_input_t			   ccmr2_input;	 // Capture/compare mode 2
+	timer_capture_compare_enable_t ccer;		 // Capture/compare enable
+	timer_counter_t				   cnt;			 // Counter
+	timer_prescaler_t			   psc;			 // Prescaler
+	timer_autoreload_t			   arr;			 // Auto-reload. (Simple 32 bit value. 16 bit for tim3 and tim4)
+	uint32_t					   reserved0;
+	capture_compare_t			   ccr1; // Capture/compare 1
+	capture_compare_t			   ccr2; // Capture/compare 2
+	capture_compare_t			   ccr3; // Capture/compare 3
+	capture_compare_t			   ccr4; // Capture/compare 4
+	uint32_t					   reserved1;
+	uint32_t					   dcr;	 // Dma control
+	uint32_t					   dmar; // Dma address
+	uint32_t					   tim2_or;
+	uint32_t					   tim5_or;
 } timer_registers_t;
 
 extern volatile timer_registers_t *const timers[];

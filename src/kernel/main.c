@@ -101,7 +101,7 @@ int main(void)
 	// reorder the tasks
 
 	configure_timer2();
-	enable_timer2();
+	enable_timer2_rcc();
 	// This basically start the scheduler
 
 	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;

@@ -35,6 +35,12 @@ void switch_to_pll()
 	5: M != 0 or 1
 	6: 50 <= N <= 432
 
+	(hsi / m) * N    /   p  = SYS CLK
+	(hsi / m) * N    /   q  = 48 MHZ
+	( 16 / 8 ) * 96  /   2   = 2 * 48 = 96
+	16 / 8     * 96  / 5 =  2 * 96 / 4  =
+
+
 	hsi / m = 2
 	2 * N /q = 48
 	2 * N/p = max possible
@@ -43,7 +49,14 @@ void switch_to_pll()
 
 	N / q = 48
 	N = 48, q = 1,
-	N = 96 , q = 2, clock = 96 Hz
+	N = 96 , q = 2, clock = 96 MHz
+	N = 96 , q = 4, clock = 48 MHz
+
+	HSI = 16 MHz
+	M = 8
+	N = 96
+	P = 2
+	Q = 4
 
 
 	*/
@@ -57,14 +70,16 @@ void switch_to_pll()
 	pll_config.n_multiplicator = 96;
 	pll_config.p_divisor	   = pllp_2; // (16 / m
 	pll_config.src			   = pll_src_hsi;
-	pll_config.q_divisor	   = 5;
+	pll_config.q_divisor	   = 4;
 	rcc->pllcfgr			   = pll_config;
 
 	// 3. prescalers BEFORE the switch (APB1 max is 50 MHz)
 	rcc_cfgr_t config	  = rcc->cfgr;
 	config.ahb_prescaler  = ahb_prescaler_divide_1;	 // Keep 16 Mhz (Don't make the machine run slower)
 	config.apb1_prescaler = apb1_prescaler_divide_2; // forced to divide by 2 so it's lower then 50Mhz in all case
-	rcc->cfgr			  = config;
+	// then it goes to an automatic *2 (since /2 : 2 != 1), so 2/2 = 1
+	// APBx Timer clocks frequency = 96 MHz
+	rcc->cfgr = config;
 
 	// 4. PLL on, wait until ready
 	rcc_cr_t cr_config = rcc->cr;
@@ -82,7 +97,7 @@ void switch_to_pll()
 	}
 }
 
-void enable_timer2()
+void enable_timer2_rcc()
 {
 
 	rcc->apb1enr.timer2_enable = 1;

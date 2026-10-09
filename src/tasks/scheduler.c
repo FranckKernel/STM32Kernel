@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "task.h"
+#include "timer.h"
 
 uint8_t task_running[(MAX_TASK + sizeof(uint8_t) - 1) / sizeof(uint8_t)];
 bool	some_task_is_running = false;
@@ -15,6 +16,13 @@ void Timer2Handler(void)
 	// We also need to have a timer counter.
 	// Task are preempted by the scheduler interrupt.
 	// But they are not pre
+
+	if (!timers[TIMER2]->sr.update_interrupt_pending)
+	{
+		return;
+	}
+	timers[TIMER2]->sr.update_interrupt_pending = 0; // clear first
+
 	if (scheduler_tick == 0)
 	{
 		// for first run or uint32_t overflow.
@@ -32,7 +40,7 @@ void Timer2Handler(void)
 		{
 			task_t	 task = task_list.tasks[i];
 			uint32_t diff = scheduler_tick - task.last_run_tick;
-			if (diff > task.frequency_divider || task.ready == true)
+			if (diff >= task.frequency_divider || task.ready == true)
 			{
 				task_list.tasks[i].last_run_tick = scheduler_tick;
 				task_list.tasks[i].ready		 = false;
