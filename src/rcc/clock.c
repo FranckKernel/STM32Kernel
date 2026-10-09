@@ -73,15 +73,7 @@ void switch_to_pll()
 	pll_config.q_divisor	   = 4;
 	rcc->pllcfgr			   = pll_config;
 
-	// 3. prescalers BEFORE the switch (APB1 max is 50 MHz)
-	rcc_cfgr_t config	  = rcc->cfgr;
-	config.ahb_prescaler  = ahb_prescaler_divide_1;	 // Keep 16 Mhz (Don't make the machine run slower)
-	config.apb1_prescaler = apb1_prescaler_divide_2; // forced to divide by 2 so it's lower then 50Mhz in all case
-	// then it goes to an automatic *2 (since /2 : 2 != 1), so 2/2 = 1
-	// APBx Timer clocks frequency = 96 MHz
-	rcc->cfgr = config;
-
-	// 4. PLL on, wait until ready
+	// 3. PLL on, wait until ready
 	rcc_cr_t cr_config = rcc->cr;
 	cr_config.pll_on   = 1;
 	rcc->cr			   = cr_config;
@@ -90,26 +82,28 @@ void switch_to_pll()
 	{
 	}
 
-	// 5. select the PLL, wait until the status confirms it
+	// 4. select the PLL, wait until the status confirms it
 	rcc->cfgr.system_clock_switch = system_clock_pll; // one liner rmw (same effect as above)
 	while (rcc->cfgr.system_clock_switch_status != system_clock_status_pll)
 	{
 	}
 }
 
-void enable_timer2_rcc()
+void configure_rcc_timers()
 {
 
-	rcc->apb1enr.timer2_enable = 1;
+	// Setup the prescaler so it can never surpass 50Mhz.
+	// switch (APB1 max is 50 MHz)
+	rcc_cfgr_t config	  = rcc->cfgr;
+	config.ahb_prescaler  = ahb_prescaler_divide_1; // Keep 16 Mhz (Don't make the machine run slower)
+	config.apb1_prescaler = apb1_prescaler_divide_2;
+	// config.system_clock_switch = system_clock_hsi; // needless, already hsi when called
+	rcc->cfgr = config;
 }
 
-void enable_timer2_hsi()
+void enable_timers_rcc()
 {
-	rcc->apb1enr.timer2_enable = 1;
 
-	rcc_cfgr_t config		   = rcc->cfgr;
-	config.system_clock_switch = system_clock_hsi;		 // 16 Mhz HSI (Useless, since we are already on hsi. Switching from hsi to hsi)
-	config.ahb_prescaler	   = ahb_prescaler_divide_1; // Keep 16 Mhz (Don't make the machine run slower)
-	config.apb1_prescaler	   = apb1_prescaler_divide_2;
-	rcc->cfgr				   = config;
+	rcc->apb1enr.timer2_enable = 1;
+	// rcc->apb1enr.timer5_enable = 1;
 }

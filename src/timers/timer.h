@@ -482,4 +482,5 @@ extern volatile timer_registers_t *const timers[];
 #include "timer_types.h"
 // functions using timer_types.h
 
-void configure_timer2();
+void configure_timer32(enum TIMER_NUMBER timer_number, uint16_t prescaler_value, uint32_t arr);
+void configure_timer16(enum TIMER_NUMBER timer_number, uint16_t prescaler_value, uint16_t arr);

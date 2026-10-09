@@ -3,6 +3,9 @@
 .thumb
 
 .global vector_table
+.global __Vectors_End
+.global __Vectors_Size
+
 
 .extern _reset
 .extern Default_Handler
@@ -81,5 +84,63 @@ vector_table:
 
     .word Default_Handler    /* 29 TIM3 */
     .word Default_Handler    /* 30 TIM4 */
+	    .word Default_Handler    /* 31 I2C1_EV */
+    .word Default_Handler    /* 32 I2C1_ER */
+    .word Default_Handler    /* 33 I2C2_EV */
+    .word Default_Handler    /* 34 I2C2_ER */
+    .word Default_Handler    /* 35 SPI1 */
+    .word Default_Handler    /* 36 SPI2 */
+    .word Default_Handler    /* 37 USART1 */
+    .word Default_Handler    /* 38 USART2 */
+    .word 0                  /* 39 Reserved */
+    .word Default_Handler    /* 40 EXTI15_10 */
+    .word Default_Handler    /* 41 RTC_Alarm */
+    .word Default_Handler    /* 42 OTG_FS_WKUP */
+    .word 0                  /* 43 Reserved */
+    .word 0                  /* 44 Reserved */
+    .word 0                  /* 45 Reserved */
+    .word 0                  /* 46 Reserved */
+    .word Default_Handler    /* 47 DMA1 Stream 7 */
+    .word 0                  /* 48 Reserved */
+    .word Default_Handler    /* 49 SDIO */
+    .word Timer5Handler    /* 50 TIM5 */
+    .word Default_Handler    /* 51 SPI3 */
+    .word 0                  /* 52 Reserved */
+    .word 0                  /* 53 Reserved */
+    .word 0                  /* 54 Reserved */
+    .word 0                  /* 55 Reserved */
+    .word Default_Handler    /* 56 DMA2 Stream 0 */
+    .word Default_Handler    /* 57 DMA2 Stream 1 */
+    .word Default_Handler    /* 58 DMA2 Stream 2 */
+    .word Default_Handler    /* 59 DMA2 Stream 3 */
+    .word Default_Handler    /* 60 DMA2 Stream 4 */
+    .word 0                  /* 61 Reserved */
+    .word 0                  /* 62 Reserved */
+    .word 0                  /* 63 Reserved */
+    .word 0                  /* 64 Reserved */
+    .word 0                  /* 65 Reserved */
+    .word 0                  /* 66 Reserved */
+    .word Default_Handler    /* 67 OTG_FS */
+    .word Default_Handler    /* 68 DMA2 Stream 5 */
+    .word Default_Handler    /* 69 DMA2 Stream 6 */
+    .word Default_Handler    /* 70 DMA2 Stream 7 */
+    .word Default_Handler    /* 71 USART6 */
+    .word Default_Handler    /* 72 I2C3_EV */
+    .word Default_Handler    /* 73 I2C3_ER */
+    .word 0                  /* 74 Reserved */
+    .word 0                  /* 75 Reserved */
+    .word 0                  /* 76 Reserved */
+    .word 0                  /* 77 Reserved */
+    .word 0                  /* 78 Reserved */
+    .word 0                  /* 79 Reserved */
+    .word 0                  /* 80 Reserved */
+    .word Default_Handler    /* 81 FPU */
+    .word 0                  /* 82 Reserved */
+    .word 0                  /* 83 Reserved */
+    .word Default_Handler    /* 84 SPI4 */
+    .word Default_Handler    /* 85 SPI5 */
 
-    /* ... rest of vector table ... */
+__Vectors_End:
+.size vector_table, __Vectors_End - vector_table
+.set __Vectors_Size, __Vectors_End - vector_table
+

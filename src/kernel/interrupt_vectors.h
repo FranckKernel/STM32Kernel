@@ -1,4 +1,5 @@
 #pragma once
+
 typedef enum
 {
 	WWDG_IRQn		= 0,
@@ -31,7 +32,45 @@ typedef enum
 	TIM1_CC_IRQn			= 27,
 
 	TIM2_IRQn = 28,
-
 	TIM3_IRQn = 29,
 	TIM4_IRQn = 30,
+
+	I2C1_EV_IRQn = 31,
+	I2C1_ER_IRQn = 32,
+	I2C2_EV_IRQn = 33,
+	I2C2_ER_IRQn = 34,
+	SPI1_IRQn	 = 35,
+	SPI2_IRQn	 = 36,
+	USART1_IRQn	 = 37,
+	USART2_IRQn	 = 38,
+
+	EXTI15_10_IRQn	 = 40,
+	RTC_Alarm_IRQn	 = 41,
+	OTG_FS_WKUP_IRQn = 42,
+
+	DMA1_Stream7_IRQn = 47,
+
+	SDIO_IRQn = 49,
+	TIM5_IRQn = 50,
+	SPI3_IRQn = 51,
+
+	DMA2_Stream0_IRQn = 56,
+	DMA2_Stream1_IRQn = 57,
+	DMA2_Stream2_IRQn = 58,
+	DMA2_Stream3_IRQn = 59,
+	DMA2_Stream4_IRQn = 60,
+
+	OTG_FS_IRQn		  = 67,
+	DMA2_Stream5_IRQn = 68,
+	DMA2_Stream6_IRQn = 69,
+	DMA2_Stream7_IRQn = 70,
+	USART6_IRQn		  = 71,
+	I2C3_EV_IRQn	  = 72,
+	I2C3_ER_IRQn	  = 73,
+
+	FPU_IRQn = 81,
+
+	SPI4_IRQn = 84,
+	SPI5_IRQn = 85,
+
 } IRQn_Type;

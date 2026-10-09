@@ -580,6 +580,6 @@ extern volatile rcc_register_t *const rcc;
 
 #include "gpio_types.h"
 void enable_gpio_clock(enum GPIO_PORT_LETTER letter);
-void enable_timer2_hsi();
-void enable_timer2_rcc();
+void configure_rcc_timers();
+void enable_timers_rcc();
 void switch_to_pll();

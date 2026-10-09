@@ -88,23 +88,28 @@ int main(void)
 	gpio_port_mode_setup(GPIOB, 12, GPIO_PORT_MODE_INPUT);
 	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
 
-	// configure timer 2
-
-	nvic_enable_irq(TIM2_IRQn);
-	configure_flash();
-	switch_to_pll();
-	// enable_timer2_hsi();
-	nvic_trigger_irq(TIM2_IRQn);
-	//
-	// // Create the task, and put them on the task_list
-	//
+	// The task for timer 2.
 	task_add((task_public_t){.func = simple_task, .period_ms = 4, .priority = 3});
 	task_add((task_public_t){.func = simple_task2, .period_ms = 0.1, .priority = 10});
 	task_reorder();
 	// // reorder the tasks
-	//
-	configure_timer2();
-	enable_timer2_rcc();
+
+	nvic_enable_irq(TIM2_IRQn);
+	// nvic_enable_irq(TIM5_IRQn);
+	nvic_trigger_irq(TIM2_IRQn);
+
+	configure_flash();
+	configure_rcc_timers();
+
+	bool use_pll = false;
+	if (use_pll)
+	{
+		switch_to_pll();
+	}
+
+	configure_timer32(TIMER2, 16, 1000000 / 2);
+	// configure_timer32(TIMER5, 16, 1000000 / 2);
+	enable_timers_rcc();
 	// This basically start the scheduler
 
 	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;
@@ -116,7 +121,7 @@ int main(void)
 	// The main loop
 	while (1)
 	{
-		uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);
-		gpio_write(GPIOA, 5, button);
+		// uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);
+		// gpio_write(GPIOA, 5, 1);
 	}
 }

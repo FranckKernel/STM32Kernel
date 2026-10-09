@@ -1,3 +1,4 @@
+#include "gpio.h"
 #include "scheduler.h"
 #include "task.h"
 #include "timer.h"
@@ -10,6 +11,19 @@ task_list_t task_list = {.task_count = 0, .tasks = {0}};
 uint32_t scheduler_tick = 0;
 
 void Timer2Handler(void)
+{
+	if (!timers[TIMER2]->sr.update_interrupt_pending)
+	{
+		return;
+	}
+	timers[TIMER2]->sr.update_interrupt_pending = 0; // clear first
+	static uint8_t pin_state					= 0;
+
+	gpio_write(GPIOA, 5, pin_state);
+	pin_state = !pin_state;
+}
+
+void Timer5Handler(void)
 {
 	// This is my simple scheduler.
 	// Have a list of task. Each task has a function ptr, a frequency, and a priority
