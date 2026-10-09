@@ -91,17 +91,18 @@ int main(void)
 
 	nvic_enable_irq(TIM2_IRQn);
 	switch_to_pll();
-	nvic_trigger_irq(TIM2_IRQn);
-
-	// Create the task, and put them on the task_list
-
-	task_add((task_public_t){.func = simple_task, .period_ms = 4, .priority = 3});
-	task_add((task_public_t){.func = simple_task2, .period_ms = 0.1, .priority = 10});
-	task_reorder();
-	// reorder the tasks
-
-	configure_timer2();
-	enable_timer2_rcc();
+	// enable_timer2_hsi();
+	// nvic_trigger_irq(TIM2_IRQn);
+	//
+	// // Create the task, and put them on the task_list
+	//
+	// task_add((task_public_t){.func = simple_task, .period_ms = 4, .priority = 3});
+	// task_add((task_public_t){.func = simple_task2, .period_ms = 0.1, .priority = 10});
+	// task_reorder();
+	// // reorder the tasks
+	//
+	// configure_timer2();
+	// enable_timer2_rcc();
 	// This basically start the scheduler
 
 	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;

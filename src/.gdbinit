@@ -10,6 +10,8 @@ end
 
 rkarm 
 
+file ./build/kernel.elf
+
 b _reset
 b main 
 
