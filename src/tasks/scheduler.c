@@ -17,7 +17,7 @@ void Timer2Handler(void)
 	// But they are not pre
 	if (scheduler_tick == 0)
 	{
-		// for first run
+		// for first run or uint32_t overflow.
 		for (uint8_t i = 0; i < task_list.task_count; i++)
 		{
 			task_list.tasks[i].ready = true;
@@ -38,7 +38,8 @@ void Timer2Handler(void)
 				task_list.tasks[i].ready		 = false;
 				task_running[i]					 = true;
 				some_task_is_running			 = true;
-				task.func();
+				task.func(); // The tasks are simple. They are the driver.
+				// And they put some information available somewhere
 
 				task_running[i]		 = false;
 				some_task_is_running = false;
@@ -69,8 +70,20 @@ void Timer2HandlerSlower(void)
 		if (diff > task.frequency_divider)
 		{
 			task_list.tasks[i].ready = true;
+			// Then, we would add this task to a ready list
 		}
 	}
+	// Work on the wait lists ????
+	// Wait on condition variable, semaphore/mutex.
+	// Wait for time.
+	// and depending on condition, remove from wait list, and put into ready list
+
+	// Here we would dequeue from the ready list to get the task
+	// then we would change cr3, change the register
+	// and change the kernel stack pointer to the ksp of this task
+	// because when this task got the scheduler interrupt called,
+	// it had it's own sp. And on sp, it pushed the return address, the ss and cs of what it cames from, and the flags.
+	// doing iret will undo this.
 
 	if (!some_task_is_running)
 	{
@@ -87,4 +100,11 @@ void Timer2HandlerSlower(void)
 			}
 		}
 	}
+
+	// on x86, we would exit the scheduler with iret
+	// Before enabling the scheduler, we would create a init process. (the creation puts it on the queue).
+	// And put a flag to first entry to true, then start the scheduler.
+	// if it's the first entry, we would set first entry to false.
+	// And then, we would need to manually consturct the iret frame.
+	// and iret to it
 }
