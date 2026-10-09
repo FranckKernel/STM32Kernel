@@ -40,6 +40,7 @@ STDLIB="./stdlib"
 COMMON="./common"
 CPU="./cpu"
 TIMERS="./timers"
+FLASH="./flash"
 TASKS="./tasks"
 RCC="./rcc"
 NVIC="./cpu/nvic"
@@ -96,7 +97,7 @@ echo "[CC] compiling..."
 $CC "${CFLAGS[@]}" -c kernel/startup.s -o "$BUILD_DIR"/startup.o
 $CC "${CFLAGS[@]}" -c kernel/vectors.s -o "$BUILD_DIR"/vectors.o
 $CC "${CFLAGS[@]}" -c kernel/isr_default.s -o "$BUILD_DIR"/isr_default.o
-$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS"
+$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS" "-I$FLASH"
 
 $CC "${CFLAGS[@]}" -c "./stdlib/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO"
 
@@ -106,6 +107,7 @@ $CC "${CFLAGS[@]}" -c "$GPIO/gpio.c" -o "$BUILD_DIR"/gpio.o
 $CC "${CFLAGS[@]}" -c "$TIMERS/timer.c" -o "$BUILD_DIR"/timer.o
 $CC "${CFLAGS[@]}" -c "$TASKS/task.c" -o "$BUILD_DIR"/task.o
 $CC "${CFLAGS[@]}" -c "$TASKS/scheduler.c" -o "$BUILD_DIR"/scheduler.o "-I$TIMERS"
+$CC "${CFLAGS[@]}" -c "$FLASH/flash.c" -o "$BUILD_DIR"/flash.o
 $CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO"
 
 echo "[LD] linking..."
@@ -130,7 +132,7 @@ $DUMP "$BUILD_DIR/$TARGET.elf" -D -h >"$BUILD_DIR/$TARGET.dump"
 
 if [[ "$RENODE_OR_REAL_MACHINE" == "real" ]]; then
 	echo "[RUN]: Flashing the kernel"
-	st-flash write "$BUILD_DIR/$TARGET.bin" 0x8000000
+	st-flash --connect-under-reset write "$BUILD_DIR/$TARGET.bin" 0x8000000
 	st-flash reset
 	if [[ "$DEBUG_OR_RELEASE" == "debug" ]]; then
 		st-util
