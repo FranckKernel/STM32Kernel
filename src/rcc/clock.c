@@ -105,5 +105,5 @@ void enable_timers_rcc()
 {
 
 	rcc->apb1enr.timer2_enable = 1;
-	// rcc->apb1enr.timer5_enable = 1;
+	rcc->apb1enr.timer5_enable = 1;
 }
