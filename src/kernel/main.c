@@ -56,11 +56,22 @@ void data_section_init(void)
 	}
 }
 
+extern uint32_t __bss_start;
+extern uint32_t __bss_end;
+
+void bss_section_init(void)
+{
+	extern uint32_t __bss_start, __bss_end;
+	for (uint32_t *p = &__bss_start; p < &__bss_end; p++)
+		*p = 0;
+}
+
 int main(void)
 {
 
 	// Copy data from flash to ram
 	data_section_init();
+	bss_section_init();
 
 	enable_gpio_clock(GPIOA);
 	enable_gpio_clock(GPIOB);
@@ -109,14 +120,19 @@ int main(void)
 	switch_to_pll();
 	enable_timers_rcc();
 
+	configure_timerPWM(TIMER4, ch1, 96, 1000); // 1 Khz pwm
+											   // set_pwm_duty(TIMER4, ch1, 1000);
+
+	configure_timer32(TIMER2, 96, 100);	 // 1 Mhz / 100 = 10 Khz
+	configure_timer32(TIMER5, 96, 1000); // 1 Khz
+	// configure_timer32(TIMER5, 96, 1000000 / 2); // 2 Hz
+
 	nvic_enable_irq(TIM2_IRQn);
 	nvic_enable_irq(TIM5_IRQn);
 
-	configure_timer32(TIMER2, 96, 100);
-	configure_timer32(TIMER5, 96, 1000000 / 2);
-
-	configure_timerPWM(TIMER4, ch1, 96, 1000); // 1 Khz pwm
-											   // set_pwm_duty(TIMER4, ch1, 1000);
+	start_timer(TIMER4);
+	// start_timer(TIMER2);
+	start_timer(TIMER5);
 
 	// This basically start the scheduler
 
@@ -138,7 +154,9 @@ int main(void)
 			dir *= -1;
 		}
 		brightness += dir;
-		set_pwm_duty(TIMER4, ch1, brightness);
-		wait_seconds(0.001);
+		// set_pwm_duty(TIMER4, ch1, brightness);
+		// wait_seconds(0.001);
+
+		// nvic_trigger_irq(TIM5_IRQn);
 	}
 }

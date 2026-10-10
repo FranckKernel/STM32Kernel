@@ -16,6 +16,10 @@ void configure_timer32(enum TIMER_NUMBER timer_number, uint16_t prescaler_value,
 	timers[timer_number]->sr.update_interrupt_pending = 0;
 
 	timers[timer_number]->dier.update_interrupt_enable = 1;
+}
+
+void start_timer(enum TIMER_NUMBER timer_number)
+{
 
 	timers[timer_number]->cr1.counter_enable = 1;
 }
@@ -31,7 +35,8 @@ void configure_timer16(enum TIMER_NUMBER timer_number, uint16_t prescaler_value,
 
 	timers[timer_number]->dier.update_interrupt_enable = 1;
 
-	timers[timer_number]->cr1.counter_enable = 1;
+	// timers[timer_number]->cr1.counter_enable = 1;
+	// moved to start timer
 }
 
 void configure_timerPWM(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL channel, uint16_t prescaler_value, uint32_t max_timer_value)
@@ -104,8 +109,6 @@ void configure_timerPWM(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL chann
 
 	timers[timer_number]->egr.update_generation		  = 1;
 	timers[timer_number]->sr.update_interrupt_pending = 0;
-
-	timers[timer_number]->cr1.counter_enable = 1;
 }
 
 void set_pwm_duty(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL channel, uint32_t value)

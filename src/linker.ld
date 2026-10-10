@@ -55,7 +55,7 @@ SECTIONS
 	} >RAM AT>FLASH
 	__data_image_start = LOADADDR(.data);
 
-    .bss :
+    .bss (NOLOAD) :
     {
 		. = ALIGN(4);
         __bss_start = .;
