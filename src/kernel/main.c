@@ -124,7 +124,7 @@ int main(void)
 											   // set_pwm_duty(TIMER4, ch1, 1000);
 
 	configure_timer32(TIMER2, 96, 100);			// 1 Mhz / 100 = 10 Khz
-	configure_timer32(TIMER3, 96, 1000);		// 1 Khz
+	configure_timer16(TIMER3, 96, 1000);		// 1 Khz
 	configure_timer32(TIMER5, 96, 1000000 / 2); // 2 Hz
 
 	nvic_enable_irq(TIM2_IRQn);
@@ -144,9 +144,6 @@ int main(void)
 	// gpio_port_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_MODE_INPUT);
 	// gpio_pull_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_PULL_MODE_UP);
 
-	// The main loop
-	uint16_t brightness = 0;
-	int8_t	 dir		= -1;
 	while (1)
 	{
 		// uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);

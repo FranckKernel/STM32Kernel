@@ -41,7 +41,7 @@
  *                                 Less important initially.
 
  * 16    SMCR         ⭐⭐⭐       Slave mode/external clock/synchronization. Important
- *                                 for advanced timer use.
+ *                                 for advanced timer use. (Needed for motor encoder)
 
  * 17    DCR          ⭐⭐        DMA burst configuration. Ignore initially unless
  *                                 using DMA.
