@@ -448,6 +448,8 @@ typedef union
 	uint32_t full32;
 } capture_compare_t;
 
+_Static_assert(sizeof(capture_compare_t) == sizeof(uint32_t), "capture_compare_t is not the proper size of 16 bit!");
+
 // ============================================================== THE META STRUCT =====================
 typedef struct
 {

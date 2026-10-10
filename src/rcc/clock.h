@@ -119,8 +119,8 @@ enum pll_src_values_t
 
 typedef struct
 {
-	uint32_t m_divider : 5;		  // 0-5 (rw) 0 and 1 are wrong values
-	uint32_t n_multiplicator : 8; // 6-14 (rw) 0 and 1 are wrong values
+	uint32_t m_divider : 6;		  // 0-5 (rw) 0 and 1 are wrong values
+	uint32_t n_multiplicator : 9; // 6-14 (rw) 0 and 1 are wrong values
 	/*
 	   50 ≤PLLN ≤432
 	*/

@@ -94,22 +94,22 @@ int main(void)
 	task_reorder();
 	// // reorder the tasks
 
-	nvic_enable_irq(TIM2_IRQn);
-	nvic_enable_irq(TIM5_IRQn);
 	// nvic_trigger_irq(TIM2_IRQn);
 
-	configure_flash();
 	configure_rcc_timers();
-	enable_timers_rcc();
 
-	bool use_pll = false;
+	bool use_pll = true;
 	if (use_pll)
 	{
 		switch_to_pll();
 	}
+	enable_timers_rcc();
 
-	configure_timer32(TIMER2, 16, 100);
-	configure_timer32(TIMER5, 16, 1000000 / 2);
+	nvic_enable_irq(TIM2_IRQn);
+	nvic_enable_irq(TIM5_IRQn);
+
+	configure_timer32(TIMER2, 96, 100);
+	configure_timer32(TIMER5, 96, 1000000 / 2);
 	// This basically start the scheduler
 
 	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;

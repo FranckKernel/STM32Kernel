@@ -1,4 +1,6 @@
 #include "clock.h"
+#include "flash.h"
+#include "gpio.h"
 #include "gpio_types.h"
 
 volatile rcc_register_t *const rcc = (volatile rcc_register_t *const)RCC_MMIO_ADDRESS_BASE;
@@ -63,6 +65,16 @@ void switch_to_pll()
 	// We don't turn hsi off, it's the pll source. No need to turn hse off, it's already off
 
 	// 1. flash wait states first (FLASH_ACR LATENCY, prefetch, caches). See ch. 3.
+	configure_flash();
+
+	if (rcc->cr.pll_on)
+	{
+		// First switch SYSCLK away from PLL if necessary.
+		// Then disable PLL and wait for PLLRDY to clear.
+		gpio_write(GPIOA, 5, 1);
+
+		// So its not on
+	}
 
 	// 2. PLL config, PLL is still off. HSI stays on (it is the PLL source).
 	rcc_pllcfgr_t pll_config   = rcc->pllcfgr;
@@ -87,6 +99,7 @@ void switch_to_pll()
 	while (rcc->cfgr.system_clock_switch_status != system_clock_status_pll)
 	{
 	}
+	// __asm volatile("bkpt #0"); // Does execution reach here?
 }
 
 void configure_rcc_timers()

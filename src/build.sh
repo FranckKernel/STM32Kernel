@@ -108,7 +108,7 @@ $CC "${CFLAGS[@]}" -c "$TIMERS/timer.c" -o "$BUILD_DIR"/timer.o
 $CC "${CFLAGS[@]}" -c "$TASKS/task.c" -o "$BUILD_DIR"/task.o
 $CC "${CFLAGS[@]}" -c "$TASKS/scheduler.c" -o "$BUILD_DIR"/scheduler.o "-I$TIMERS" "-I$GPIO"
 $CC "${CFLAGS[@]}" -c "$FLASH/flash.c" -o "$BUILD_DIR"/flash.o
-$CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO"
+$CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO" "-I$FLASH"
 
 echo "[LD] linking..."
 
