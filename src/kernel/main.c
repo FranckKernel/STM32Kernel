@@ -3,6 +3,7 @@
 #include "gpio.h"
 #include "interrupt_vectors.h"
 #include "intrinsics.h"
+#include "macros.h"
 #include "nvic.h"
 #include "scheduler.h"
 #include "syscall.h"
