@@ -95,10 +95,13 @@ int main(void)
 #	endif
 #endif
 
-	// gpio_struct.a->port_mode.pin5 = GPIO_PORT_MODE_OUTPUT;
-	// gpio[GPIOA]->port_mode.pin5 = GPIO_PORT_MODE_OUTPUT;
+	// The blue led pin
 	gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
 	gpio_output_type_setup(GPIOA, 5, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
+
+	// The button pin
+	gpio_port_mode_setup(GPIOB, 12, GPIO_PORT_MODE_INPUT);
+	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
 
 	// use GPIO A7 for pwm
 	gpio_port_mode_setup(GPIOB, 6, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
@@ -109,8 +112,23 @@ int main(void)
 	// B8: Tim4 -> Channel 3
 	// B9: Tim4 -> Channel 4
 
-	gpio_port_mode_setup(GPIOB, 12, GPIO_PORT_MODE_INPUT);
-	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
+	// USART2 TX pin
+	gpio_port_mode_setup(GPIOA, 2, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
+	gpio_output_type_setup(GPIOA, 2, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
+	gpio_alternate_function_setup(GPIOA, 2, AF7); // AF7 does it so the following happen
+	// A0 -> USART2 CTS
+	// A1 -> USART2 RTS
+	// A2 -> USART2 TX
+	// A3 -> USART2 RX
+
+	// USART2 RX pin
+	gpio_port_mode_setup(GPIOA, 3, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
+	gpio_pull_mode_setup(GPIOA, 3, GPIO_PORT_PULL_MODE_NONE);
+	gpio_alternate_function_setup(GPIOA, 3, AF7); // AF7 does it so the following happen
+	// A0 -> USART2 CTS
+	// A1 -> USART2 RTS
+	// A2 -> USART2 TX
+	// A3 -> USART2 RX
 
 	// The task for timer 2.
 	task_add((task_public_t){.func = simple_task, .period_ms = 4, .priority = 3});

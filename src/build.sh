@@ -45,6 +45,8 @@ TASKS="./tasks"
 RCC="./rcc"
 NVIC="./cpu/nvic"
 
+USART="./communication/usart"
+
 # ============= FLAGS
 USE_LIBC="false" # "true" or "false"
 
@@ -109,6 +111,8 @@ $CC "${CFLAGS[@]}" -c "$TASKS/task.c" -o "$BUILD_DIR"/task.o "-I$GPIO" "-I$TIMER
 $CC "${CFLAGS[@]}" -c "$TASKS/scheduler.c" -o "$BUILD_DIR"/scheduler.o "-I$TIMERS" "-I$GPIO"
 $CC "${CFLAGS[@]}" -c "$FLASH/flash.c" -o "$BUILD_DIR"/flash.o
 $CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO" "-I$FLASH"
+
+$CC "${CFLAGS[@]}" -c "$USART/usart.c" -o "$BUILD_DIR"/clock.o "-I$COMMON"
 
 echo "[LD] linking..."
 

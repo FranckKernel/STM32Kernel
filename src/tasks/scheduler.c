@@ -24,8 +24,10 @@ void Timer5Handler(void)
 	pin_state = !pin_state;
 }
 
+// 4 is used for pwm right now
 void Timer3Handler(void)
 {
+	// I should probably use Tim3 for encoder
 
 	if (!timers[TIMER3]->sr.update_interrupt_pending)
 	{
