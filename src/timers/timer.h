@@ -121,8 +121,8 @@ typedef struct
 	{
 		struct
 		{
-			uint16_t arr16; // (rw), default = 0xFFFF
-			uint16_t reserved;
+			uint32_t arr16 : 16; // (rw), default = 0xFFFF
+			uint32_t reserved : 16;
 		};
 		uint32_t arr32; // (rw), default = 0xFFFF FFFF
 	};

@@ -1,4 +1,6 @@
+#include "gpio.h"
 #include "task.h"
+#include "timer.h"
 
 uint32_t timer_frequency = 50'000;
 
@@ -17,12 +19,12 @@ bool task_add(task_public_t data)
 {
 	task_t	task = task_create(data);
 	uint8_t c	 = task_list.task_count;
-	c++;
-	if (c > MAX_TASK)
+
+	if (c >= MAX_TASK)
 	{
 		return false;
 	}
-	task_list.task_count = c;
+	task_list.task_count = c + 1;
 	task_list.tasks[c]	 = task;
 
 	return true;
@@ -81,5 +83,6 @@ void simple_task()
 
 void simple_task2()
 {
+	// gpio_write(GPIOA, 5, 1);
 	// do something
 }

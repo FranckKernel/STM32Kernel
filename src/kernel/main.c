@@ -123,15 +123,17 @@ int main(void)
 	configure_timerPWM(TIMER4, ch1, 96, 1000); // 1 Khz pwm
 											   // set_pwm_duty(TIMER4, ch1, 1000);
 
-	configure_timer32(TIMER2, 96, 100);	 // 1 Mhz / 100 = 10 Khz
-	configure_timer32(TIMER5, 96, 1000); // 1 Khz
-	// configure_timer32(TIMER5, 96, 1000000 / 2); // 2 Hz
+	configure_timer32(TIMER2, 96, 100);			// 1 Mhz / 100 = 10 Khz
+	configure_timer32(TIMER3, 96, 1000);		// 1 Khz
+	configure_timer32(TIMER5, 96, 1000000 / 2); // 2 Hz
 
 	nvic_enable_irq(TIM2_IRQn);
+	nvic_enable_irq(TIM3_IRQn);
 	nvic_enable_irq(TIM5_IRQn);
 
 	start_timer(TIMER4);
-	// start_timer(TIMER2);
+	start_timer(TIMER2);
+	start_timer(TIMER3);
 	start_timer(TIMER5);
 
 	// This basically start the scheduler
@@ -149,11 +151,6 @@ int main(void)
 	{
 		// uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);
 		// gpio_write(GPIOB, 6, 1);
-		if (brightness == 0 || brightness == 1000)
-		{
-			dir *= -1;
-		}
-		brightness += dir;
 		// set_pwm_duty(TIMER4, ch1, brightness);
 		// wait_seconds(0.001);
 

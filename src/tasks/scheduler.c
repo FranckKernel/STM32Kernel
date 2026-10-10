@@ -19,9 +19,19 @@ void Timer5Handler(void)
 	timers[TIMER5]->sr.update_interrupt_pending = 0; // clear first
 	static uint8_t pin_state					= 0;
 
-	// gpio_write(GPIOA, 5, pin_state);
+	gpio_write(GPIOA, 5, pin_state);
 
 	pin_state = !pin_state;
+}
+
+void Timer3Handler(void)
+{
+
+	if (!timers[TIMER3]->sr.update_interrupt_pending)
+	{
+		return;
+	}
+	timers[TIMER3]->sr.update_interrupt_pending = 0; // clear first
 
 	static int16_t			dir		   = 1;
 	static volatile int16_t brightness = 0;
@@ -30,17 +40,8 @@ void Timer5Handler(void)
 	if (brightness == 1000)
 		dir = -1; // at top, go down
 
-	if (brightness == 0)
-	{
-		// set_pwm_duty(TIMER4, ch1, 100);
-		set_pwm_duty(TIMER4, ch1, brightness);
-	}
-	else
-	{
-		set_pwm_duty(TIMER4, ch1, brightness);
-	}
-
 	brightness += dir;
+	set_pwm_duty(TIMER4, ch1, brightness);
 }
 
 void Timer2Handler(void)

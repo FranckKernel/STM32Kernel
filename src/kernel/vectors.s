@@ -82,7 +82,7 @@ vector_table:
 
     .word Timer2Handler    /* 28 TIM2 */
 
-    .word Default_Handler    /* 29 TIM3 */
+    .word Timer3Handler    /* 29 TIM3 */
     .word Default_Handler    /* 30 TIM4 */
 	    .word Default_Handler    /* 31 I2C1_EV */
     .word Default_Handler    /* 32 I2C1_ER */
