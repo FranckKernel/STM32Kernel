@@ -10,6 +10,9 @@
 #include "timer.h"
 #include <stdint.h>
 
+static const uint16_t pwm_prescaler	 = 12; // Lead to duty step of 800
+uint16_t			  pwm_duty_steps = GET_TIMER_MAX_COUNTER_CUSTOM(10000, pwm_prescaler);
+
 #ifdef USE_LIBC
 #	include <stdio.h>
 #	include <stdlib.h>
@@ -123,8 +126,6 @@ int main(void)
 
 	// Need customer values if i want something else
 	// uint16_t pwm_prescaler = timer_prescaler;
-	static const uint16_t pwm_prescaler	 = 12; // Lead to duty step of 800
-	uint16_t			  pwm_duty_steps = GET_TIMER_MAX_COUNTER_CUSTOM(10000, pwm_prescaler);
 	configure_timerPWM(TIMER4, ch1, pwm_prescaler, pwm_duty_steps); // 10 Khz pwm
 																	// set_pwm_duty(TIMER4, ch1, 1000);
 
