@@ -122,6 +122,47 @@ void gpio_write(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_OUTPUT_DATA
 	// pin + 16*(1-level)
 }
 
+void gpio_alternate_function_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum gpio_alternate_functions_values alternate_function)
+{
+
+	if (letter == GPIOF || letter == GPIOG)
+	{
+		// Error
+		return;
+	}
+
+	uintptr_t base	   = (uintptr_t)&gpio[letter]->alternate_function_low;
+	uintptr_t baseWord = base + (pin / 8) * 4; // The address of gpio alternate_function_low or alternate_function_high register;
+	// The size of each element is 4 bits. So 8 bits / 2 (So bytecount = index / 2)
+
+	struct s
+	{
+		uint8_t l : 4;
+		uint8_t h : 4;
+	} __attribute__((packed));
+	struct w32
+	{
+		struct s bytes[4];
+	};
+	_Static_assert(sizeof(struct s) == 1, "Must be 1 byte!");
+	_Static_assert(sizeof(struct w32) == 4, "Must be 1 word!");
+
+	volatile struct w32 *gpio_alternate_function_register_addr = (volatile struct w32 *)baseWord;
+	struct w32			 stack_copy							   = *gpio_alternate_function_register_addr;
+
+	uint32_t byte = (pin % 8) / 2;
+	if (pin % 2 == 0)
+	{
+		stack_copy.bytes[byte].l = alternate_function;
+	}
+	else if (pin % 2 == 1)
+	{
+		stack_copy.bytes[byte].h = alternate_function;
+	}
+
+	*gpio_alternate_function_register_addr = stack_copy;
+}
+
 void reg_setup()
 {
 	gpio_struct.a->port_mode.pin5 = GPIO_PORT_MODE_OUTPUT;

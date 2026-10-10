@@ -107,9 +107,9 @@ _Static_assert(sizeof(timer_cr1_t) == sizeof(uint32_t), "timer_cr1_t is not the 
 // ================== PSC (TIMx Prescaler)
 typedef struct
 {
-	uint16_t prescaler_value; // (rw), default = 0
+	uint32_t prescaler_value : 16; // (rw), default = 0
 	// The counter clock frequency = f_ck_psc / (prescaler_value +1 )
-	uint16_t reserved; // (r only), default = 0
+	uint32_t reserved : 16; // (r only), default = 0
 
 } timer_prescaler_t;
 
@@ -134,23 +134,23 @@ _Static_assert(sizeof(timer_autoreload_t) == sizeof(uint32_t), "timer_autoreload
 typedef struct
 {
 	// rc_w0: Read or clear by writting 0. Hardware write 1
-	uint16_t update_interrupt_pending : 1; // bit 0. Set by hardware on update event, cleared by software
-	uint16_t capture_compared_1 : 1;	   // bit 1 (rc_w0), default 0
-	uint16_t capture_compared_2 : 1;	   // bit 2 (rc_w0), default 0
-	uint16_t capture_compared_3 : 1;	   // bit 3 (rc_w0), default 0
-	uint16_t capture_compared_4 : 1;	   // bit 4 (rc_w0), default 0
-	uint16_t reserved1 : 1;				   // bit 5, (r only), default 0
-	uint16_t trigger_interrupt_flag : 1;   // bit 6, (rc_w0)
-	uint16_t _reserved2 : 2;			   // bit 7-8, (r only), default 0
+	uint32_t update_interrupt_pending : 1; // bit 0. Set by hardware on update event, cleared by software
+	uint32_t capture_compared_1 : 1;	   // bit 1 (rc_w0), default 0
+	uint32_t capture_compared_2 : 1;	   // bit 2 (rc_w0), default 0
+	uint32_t capture_compared_3 : 1;	   // bit 3 (rc_w0), default 0
+	uint32_t capture_compared_4 : 1;	   // bit 4 (rc_w0), default 0
+	uint32_t reserved1 : 1;				   // bit 5, (r only), default 0
+	uint32_t trigger_interrupt_flag : 1;   // bit 6, (rc_w0)
+	uint32_t _reserved2 : 2;			   // bit 7-8, (r only), default 0
 
-	uint16_t capture_compared_1_overcapture : 1; // bit 9 (rc_w0), default 0
-	uint16_t capture_compared_2_overcapture : 1; // bit 10 (rc_w0), default 0
-	uint16_t capture_compared_3_overcapture : 1; // bit 11 (rc_w0), default 0
-	uint16_t capture_compared_4_overcapture : 1; // bit 12 (rc_w0), default 0
+	uint32_t capture_compared_1_overcapture : 1; // bit 9 (rc_w0), default 0
+	uint32_t capture_compared_2_overcapture : 1; // bit 10 (rc_w0), default 0
+	uint32_t capture_compared_3_overcapture : 1; // bit 11 (rc_w0), default 0
+	uint32_t capture_compared_4_overcapture : 1; // bit 12 (rc_w0), default 0
 
-	uint16_t _reserved3 : 3; // bit 13-15, (r only), default 0
+	uint32_t _reserved3 : 3; // bit 13-15, (r only), default 0
 
-	uint16_t reserved;
+	uint32_t reserved : 16;
 
 } timer_status_t;
 _Static_assert(sizeof(timer_status_t) == sizeof(uint32_t), "timer_status_t is not the proper size of 32 bit!");
@@ -160,27 +160,27 @@ _Static_assert(sizeof(timer_status_t) == sizeof(uint32_t), "timer_status_t is no
 typedef struct
 {
 
-	uint16_t update_interrupt_enable : 1;			 // bit 0, (rw), default 0
-	uint16_t capture_compare_1_interrupt_enable : 1; // bit 1, (rw), default 0
-	uint16_t capture_compare_2_interrupt_enable : 1; // bit 2, (rw), default 0
-	uint16_t capture_compare_3_interrupt_enable : 1; // bit 3, (rw), default 0
-	uint16_t capture_compare_4_interrupt_enable : 1; // bit 4, (rw), default 0
-	uint16_t _reserved1 : 1;						 // bit 5, (r only), default 0
+	uint32_t update_interrupt_enable : 1;			 // bit 0, (rw), default 0
+	uint32_t capture_compare_1_interrupt_enable : 1; // bit 1, (rw), default 0
+	uint32_t capture_compare_2_interrupt_enable : 1; // bit 2, (rw), default 0
+	uint32_t capture_compare_3_interrupt_enable : 1; // bit 3, (rw), default 0
+	uint32_t capture_compare_4_interrupt_enable : 1; // bit 4, (rw), default 0
+	uint32_t _reserved1 : 1;						 // bit 5, (r only), default 0
 
-	uint16_t trigger_interrupt_enable : 1; // bit 6, (rw), default 0
-	uint16_t _reserved2 : 1;			   // bit 7, (r only), default 0
+	uint32_t trigger_interrupt_enable : 1; // bit 6, (rw), default 0
+	uint32_t _reserved2 : 1;			   // bit 7, (r only), default 0
 
-	uint16_t update_dma_request_enable : 1;			   // bit 8, (rw), default 0
-	uint16_t capture_compare_1_dma_request_enable : 1; // bit 9, (rw), default 0
-	uint16_t capture_compare_2_dma_request_enable : 1; // bit 10, (rw), default 0
-	uint16_t capture_compare_3_dma_request_enable : 1; // bit 11, (rw), default 1
-	uint16_t capture_compare_4_dma_request_enable : 1; // bit 12, (rw), default 0
-	uint16_t _reserved3 : 1;						   // bit 13, (r only), default 0
+	uint32_t update_dma_request_enable : 1;			   // bit 8, (rw), default 0
+	uint32_t capture_compare_1_dma_request_enable : 1; // bit 9, (rw), default 0
+	uint32_t capture_compare_2_dma_request_enable : 1; // bit 10, (rw), default 0
+	uint32_t capture_compare_3_dma_request_enable : 1; // bit 11, (rw), default 1
+	uint32_t capture_compare_4_dma_request_enable : 1; // bit 12, (rw), default 0
+	uint32_t _reserved3 : 1;						   // bit 13, (r only), default 0
 
-	uint16_t trigger_dma_request_enable : 1; // bit 14, (rw), default 0
-	uint16_t _reserved4 : 1;				 // bit 15, (r only), default 0
+	uint32_t trigger_dma_request_enable : 1; // bit 14, (rw), default 0
+	uint32_t _reserved4 : 1;				 // bit 15, (r only), default 0
 
-	uint16_t reserved;
+	uint32_t reserved : 16;
 
 } timer_interrupt_enable_t;
 _Static_assert(sizeof(timer_interrupt_enable_t) == sizeof(uint32_t), "timer_interrupt_enable_t is not the proper size of 32 bit!");
@@ -192,8 +192,8 @@ typedef struct
 	{
 		struct
 		{
-			uint16_t count16; // (rw), default = 0xFFFF
-			uint16_t reserved;
+			uint32_t count16 : 16; // (rw), default = 0xFFFF
+			uint32_t reserved : 16;
 		};
 		uint32_t count32; // (rw), default = 0xFFFF FFFF
 	};
@@ -204,22 +204,22 @@ _Static_assert(sizeof(timer_counter_t) == sizeof(uint32_t), "timer_counter_t is 
 typedef struct
 {
 	// Write only struct
-	uint16_t update_generation : 1; // bit 0 (w only), default 0. Automatically cleared by hardware. Can be set by software.  Reinitialise
+	uint32_t update_generation : 1; // bit 0 (w only), default 0. Automatically cleared by hardware. Can be set by software.  Reinitialise
 									// the counter and generate an update of the registers
-	uint16_t capture_compare_1_generation
-		: 1; // bit 1 (w only), default 0 Set by software to generate an event. Automatically cleared by hardware.
+	uint32_t capture_compare_1_generation : 1; // bit 1 (w only), default 0 Set by software to generate an event.
+	// Automatically cleared by hardware.
 	// If used as output, generate interrupt or DMA request if enable.
 	// If used as input, value of the counter is captured in CCR1 register
-	uint16_t capture_compare_2_generation : 1; // bit 2 (w only), default 0
-	uint16_t capture_compare_3_generation : 1; // bit 3 (w only), default 0
-	uint16_t capture_compare_4_generation : 1; // bit 4 (w only), default 0
+	uint32_t capture_compare_2_generation : 1; // bit 2 (w only), default 0
+	uint32_t capture_compare_3_generation : 1; // bit 3 (w only), default 0
+	uint32_t capture_compare_4_generation : 1; // bit 4 (w only), default 0
 
-	uint16_t _reserved1 : 1;		 // bit 5, (r only), default 0
-	uint16_t trigger_generation : 1; // bit 6 (w only), default 0. (related to trigger interrupt flag. )
+	uint32_t _reserved1 : 1;		 // bit 5, (r only), default 0
+	uint32_t trigger_generation : 1; // bit 6 (w only), default 0. (related to trigger interrupt flag. )
 	// Set by software, auto cleared by hardware. Geneate a interrupt / dma transfer if TIF is set
 
-	uint16_t _reserved2 : 9; // bit 7-15, (r only), default 0
-	uint16_t reserved;
+	uint32_t _reserved2 : 9; // bit 7-15, (r only), default 0
+	uint32_t reserved : 16;
 } timer_event_generation_t;
 _Static_assert(sizeof(timer_event_generation_t) == sizeof(uint32_t), "timer_event_generation_t is not the proper size of 32 bit!");
 
@@ -258,21 +258,23 @@ typedef struct __attribute__((packed))
 {
 	// This whole thing is rw
 	enum cc1s_values_1 cc1_selection : 2; // bit 0-1, rw (only writable when cc1e = 0 in ccer). Must be 0
-	uint16_t		   output_compare1_fast_enable : 1;
-	uint16_t		   output_compare1_preload_enable : 1;
+	uint32_t		   output_compare1_fast_enable : 1;
+	uint32_t		   output_compare1_preload_enable : 1;
 	enum ocm_values	   output_compare1_mode : 3;		 // bit 4-6. (rw)
-	uint16_t		   output_compare1_clear_enable : 1; // bit 7, (rw), default 0,
+	uint32_t		   output_compare1_clear_enable : 1; // bit 7, (rw), default 0,
 	// if 1 OC1Ref is cleared when ETRF input high, else not affected
 
 	enum cc2s_values_1 cc2_selection : 2;				   // bit 8-9, rw
-	uint16_t		   output_compare2_fast_enable : 1;	   // bit 10
-	uint16_t		   output_compare2_preload_enable : 1; // bit 11
+	uint32_t		   output_compare2_fast_enable : 1;	   // bit 10
+	uint32_t		   output_compare2_preload_enable : 1; // bit 11
 	enum ocm_values	   output_compare2_mode : 3;		   // bit 12-14. (rw)
-	uint16_t		   output_compare2_clear_enable : 1;   // bit 15, (rw), default 0
+	uint32_t		   output_compare2_clear_enable : 1;   // bit 15, (rw), default 0
+
+	uint32_t reserved : 16;
 
 } timer_ccmr1_output_t;
 
-_Static_assert(sizeof(timer_ccmr1_output_t) == sizeof(uint16_t), "timer_ccr1_input_t is not the proper size of 16 bit!");
+_Static_assert(sizeof(timer_ccmr1_output_t) == sizeof(uint32_t), "timer_ccmr1_input_t is not the proper size of 16 bit!");
 
 enum input_capture_prescalers_values
 {
@@ -314,9 +316,19 @@ typedef struct __attribute__((packed))
 	enum input_capture_prescalers_values input_capture2_prescaler : 2;
 	enum input_capture_filter_values	 input_capture2_filter : 4; // bit 12-15
 
-} timer_ccr1_input_t;
+} timer_ccmr1_input_t;
 
-_Static_assert(sizeof(timer_ccr1_input_t) == sizeof(uint16_t), "timer_event_generation_t is not the proper size of 16 bit!");
+_Static_assert(sizeof(timer_ccmr1_input_t) == sizeof(uint16_t), "timer_event_generation_t is not the proper size of 16 bit!");
+
+typedef struct
+{
+	union
+	{
+		timer_ccmr1_output_t output;
+		timer_ccmr1_input_t	 input;
+	};
+
+} timer_ccmr1_t;
 
 // ============================= CCMR2 (TIMER x Capture/Compare 2 Mode Register )
 enum cc3s_values_2
@@ -355,7 +367,7 @@ typedef struct __attribute__((packed))
 
 } timer_ccmr2_output_t;
 
-_Static_assert(sizeof(timer_ccmr2_output_t) == sizeof(uint16_t), "timer_ccr1_input_t is not the proper size of 16 bit!");
+_Static_assert(sizeof(timer_ccmr2_output_t) == sizeof(uint16_t), "timer_ccmr2_input_t is not the proper size of 16 bit!");
 
 typedef struct __attribute__((packed))
 {
@@ -367,8 +379,18 @@ typedef struct __attribute__((packed))
 	enum input_capture_prescalers_values input_capture4_prescaler : 2;
 	enum input_capture_filter_values	 input_capture4_filter : 4; // bit 12-15
 
-} timer_ccr2_input_t;
-_Static_assert(sizeof(timer_ccr2_input_t) == sizeof(uint16_t), "timer_event_generation_t is not the proper size of 16 bit!");
+} timer_ccmr2_input_t;
+_Static_assert(sizeof(timer_ccmr2_input_t) == sizeof(uint16_t), "timer_event_generation_t is not the proper size of 16 bit!");
+
+typedef struct
+{
+	union
+	{
+		timer_ccmr2_output_t output;
+		timer_ccmr2_input_t	 input;
+	};
+
+} timer_ccr2_t;
 
 // ============================= CCER (TIMER x Capture/Compare Enable Register )
 /* 3-bit field spans CCxNP (bit 3), reserved (bit 2), CCxP (bit 1).
@@ -405,6 +427,7 @@ typedef struct __attribute__((packed))
 	uint16_t				  cc4_enable : 1;	// bit 12;
 	enum ccxp_output_polarity cc4_polarity : 3; // bits 13-15;
 
+	uint16_t reserved;
 	// output: 1 → OCx signal is output on the pin, else not active
 	// input : 1 → capture into TIMx_CCRx is enabled
 } timer_ccer_output_t;
@@ -425,17 +448,18 @@ typedef struct __attribute__((packed))
 
 	// output: 1 → OCx signal is output on the pin, else not active
 	// input : 1 → capture into TIMx_CCRx is enabled
+
+	uint16_t reserved;
 } timer_ccer_input_t;
 
 typedef struct
 {
 	union
 	{
-		uint16_t			raw;
+		uint32_t			raw;
 		timer_ccer_output_t output;
 		timer_ccer_input_t	input;
 	};
-	uint16_t reserved;
 } timer_capture_compare_enable_t;
 
 _Static_assert(sizeof(timer_capture_compare_enable_t) == sizeof(uint32_t), "timer_event_generation_t is not the proper size of 16 bit!");
@@ -453,20 +477,18 @@ _Static_assert(sizeof(capture_compare_t) == sizeof(uint32_t), "capture_compare_t
 // ============================================================== THE META STRUCT =====================
 typedef struct
 {
-	timer_cr1_t					   cr1;			 // Control register 1
-	uint32_t					   cr2;			 // Control register 2
-	uint32_t					   smcr;		 // Slave mode control
-	timer_interrupt_enable_t	   dier;		 // Dma / interrupt enable
-	timer_status_t				   sr;			 // Status register
-	timer_event_generation_t	   egr;			 // Event generation
-	timer_ccmr1_output_t		   ccmr1_output; // Capture/compare mode 1
-	timer_ccr1_input_t			   ccmr1_input;	 // Capture/compare mode 1
-	timer_ccmr1_output_t		   ccmr2_output; // Capture/compare mode 2
-	timer_ccr2_input_t			   ccmr2_input;	 // Capture/compare mode 2
-	timer_capture_compare_enable_t ccer;		 // Capture/compare enable
-	timer_counter_t				   cnt;			 // Counter
-	timer_prescaler_t			   psc;			 // Prescaler
-	timer_autoreload_t			   arr;			 // Auto-reload. (Simple 32 bit value. 16 bit for tim3 and tim4)
+	timer_cr1_t					   cr1;	  // Control register 1
+	uint32_t					   cr2;	  // Control register 2
+	uint32_t					   smcr;  // Slave mode control
+	timer_interrupt_enable_t	   dier;  // Dma / interrupt enable
+	timer_status_t				   sr;	  // Status register
+	timer_event_generation_t	   egr;	  // Event generation
+	timer_ccmr1_t				   ccmr1; // Capture/compare mode 1
+	timer_ccr2_t				   ccmr2; // Capture/compare mode 2
+	timer_capture_compare_enable_t ccer;  // Capture/compare enable
+	timer_counter_t				   cnt;	  // Counter
+	timer_prescaler_t			   psc;	  // Prescaler
+	timer_autoreload_t			   arr;	  // Auto-reload. (Simple 32 bit value. 16 bit for tim3 and tim4)
 	uint32_t					   reserved0;
 	capture_compare_t			   ccr1; // Capture/compare 1
 	capture_compare_t			   ccr2; // Capture/compare 2
@@ -486,3 +508,6 @@ extern volatile timer_registers_t *const timers[];
 
 void configure_timer32(enum TIMER_NUMBER timer_number, uint16_t prescaler_value, uint32_t arr);
 void configure_timer16(enum TIMER_NUMBER timer_number, uint16_t prescaler_value, uint16_t arr);
+
+void configure_timerPWM(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL channel, uint16_t prescaler_value, uint32_t max_timer_value);
+void set_pwm_duty(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL channel, uint32_t value);

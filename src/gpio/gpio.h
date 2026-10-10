@@ -251,16 +251,72 @@ typedef struct
 
 } gpio_port_bit_set_reset_t;
 _Static_assert(sizeof(gpio_port_bit_set_reset_t) == sizeof(uint32_t), "gpio_port_bit_set_reset_t is not the proper size of 32 bit!");
+
+// GPIO Alternate Function Low/High Register  ===========================
+enum gpio_alternate_functions_values
+{
+	AF0	 = 0b0000,
+	AF1	 = 0b0001,
+	AF2	 = 0b0010,
+	AF3	 = 0b0011,
+	AF4	 = 0b0100,
+	AF5	 = 0b0101,
+	AF6	 = 0b0110,
+	AF7	 = 0b0111,
+	AF8	 = 0b1000,
+	AF9	 = 0b1001,
+	AF10 = 0b1010,
+	AF11 = 0b1011,
+	AF12 = 0b1100,
+	AF13 = 0b1101,
+	AF14 = 0b1110,
+	AF15 = 0b1111,
+};
+
+typedef struct
+{
+	enum gpio_alternate_functions_values l0 : 4;
+	enum gpio_alternate_functions_values l1 : 4;
+	enum gpio_alternate_functions_values l2 : 4;
+	enum gpio_alternate_functions_values l3 : 4;
+	enum gpio_alternate_functions_values l4 : 4;
+	enum gpio_alternate_functions_values l5 : 4;
+	enum gpio_alternate_functions_values l6 : 4;
+	enum gpio_alternate_functions_values l7 : 4;
+
+} gpio_alternate_function_low_t;
+
+_Static_assert(
+	sizeof(gpio_alternate_function_low_t) == sizeof(uint32_t), "gpio_alternate_function_low_t is not the proper size of 32 bit!");
+
+typedef struct
+{
+	enum gpio_alternate_functions_values h8 : 4;
+	enum gpio_alternate_functions_values h9 : 4;
+	enum gpio_alternate_functions_values h10 : 4;
+	enum gpio_alternate_functions_values h11 : 4;
+	enum gpio_alternate_functions_values h12 : 4;
+	enum gpio_alternate_functions_values h13 : 4;
+	enum gpio_alternate_functions_values h14 : 4;
+	enum gpio_alternate_functions_values h15 : 4;
+
+} gpio_alternate_function_high_t;
+_Static_assert(
+	sizeof(gpio_alternate_function_high_t) == sizeof(uint32_t), "gpio_alternate_function_high_t is not the proper size of 32 bit!");
+
 // ======================================== The meta struct:
 typedef struct
 {
-	gpio_port_mode_t		  port_mode;
-	gpio_port_output_type_t	  output_type;
-	gpio_port_output_speed_t  output_speed;
-	gpio_port_pull_mode_t	  pull_mode;
-	gpio_port_input_data_t	  input_data;
-	gpio_port_output_data_t	  output_data;
-	gpio_port_bit_set_reset_t bit_set_reset;
+	gpio_port_mode_t			   port_mode;
+	gpio_port_output_type_t		   output_type;
+	gpio_port_output_speed_t	   output_speed;
+	gpio_port_pull_mode_t		   pull_mode;
+	gpio_port_input_data_t		   input_data;
+	gpio_port_output_data_t		   output_data;
+	gpio_port_bit_set_reset_t	   bit_set_reset;
+	uint32_t					   lckr;
+	gpio_alternate_function_low_t  alternate_function_low;
+	gpio_alternate_function_high_t alternate_function_high;
 
 } gpio_x_register_t;
 
@@ -292,3 +348,5 @@ void gpio_output_speed_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPI
 void				 gpio_write(enum GPIO_PORT_LETTER letter, uint8_t pin, enum GPIO_OUTPUT_DATA level);
 enum GPIO_INPUT_DATA gpio_read(enum GPIO_PORT_LETTER letter, uint8_t pin);
 void				 setLD2(enum GPIO_OUTPUT_DATA level);
+
+void gpio_alternate_function_setup(enum GPIO_PORT_LETTER letter, uint8_t pin, enum gpio_alternate_functions_values alternate_function);

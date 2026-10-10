@@ -15,7 +15,7 @@
 #	include <string.h>
 #endif
 
-uint32_t clock_frequency = 16 * 1000 * 1000;
+uint32_t clock_frequency = 96 * 1000 * 1000;
 
 void wait_seconds(float seconds)
 {
@@ -85,6 +85,15 @@ int main(void)
 	gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
 	gpio_output_type_setup(GPIOA, 5, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
 
+	// use GPIO A7 for pwm
+	gpio_port_mode_setup(GPIOB, 6, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
+	gpio_output_type_setup(GPIOB, 6, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
+	gpio_alternate_function_setup(GPIOB, 6, AF2); // AF2 does it so the following happen
+	// B6: Tim4 -> Channel 1
+	// B7: Tim4 -> Channel 2
+	// B8: Tim4 -> Channel 3
+	// B9: Tim4 -> Channel 4
+
 	gpio_port_mode_setup(GPIOB, 12, GPIO_PORT_MODE_INPUT);
 	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
 
@@ -97,12 +106,7 @@ int main(void)
 	// nvic_trigger_irq(TIM2_IRQn);
 
 	configure_rcc_timers();
-
-	bool use_pll = true;
-	if (use_pll)
-	{
-		switch_to_pll();
-	}
+	switch_to_pll();
 	enable_timers_rcc();
 
 	nvic_enable_irq(TIM2_IRQn);
@@ -110,6 +114,10 @@ int main(void)
 
 	configure_timer32(TIMER2, 96, 100);
 	configure_timer32(TIMER5, 96, 1000000 / 2);
+
+	configure_timerPWM(TIMER4, ch1, 96, 1000); // 1 Khz pwm
+											   // set_pwm_duty(TIMER4, ch1, 1000);
+
 	// This basically start the scheduler
 
 	// gpio.b->port_mode.pin12 = GPIO_PORT_MODE_OUTPUT;
@@ -119,9 +127,18 @@ int main(void)
 	// gpio_pull_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_PULL_MODE_UP);
 
 	// The main loop
+	uint16_t brightness = 0;
+	int8_t	 dir		= -1;
 	while (1)
 	{
 		// uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);
-		// gpio_write(GPIOA, 5, 1);
+		// gpio_write(GPIOB, 6, 1);
+		if (brightness == 0 || brightness == 1000)
+		{
+			dir *= -1;
+		}
+		brightness += dir;
+		set_pwm_duty(TIMER4, ch1, brightness);
+		wait_seconds(0.001);
 	}
 }
