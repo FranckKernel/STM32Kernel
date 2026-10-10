@@ -512,3 +512,23 @@ void configure_timer16(enum TIMER_NUMBER timer_number, uint16_t prescaler_value,
 
 void configure_timerPWM(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL channel, uint16_t prescaler_value, uint32_t max_timer_value);
 void set_pwm_duty(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL channel, uint32_t value);
+
+static const uint32_t clock_frequency = 96 * 1000 * 1000;
+static const uint32_t timer_prescaler = clock_frequency / 1000'000;
+
+static inline uint32_t get_timer_max_counter(uint32_t timer_frequency)
+{
+	const uint32_t counter_increase_frequency = clock_frequency / timer_prescaler;
+
+	return counter_increase_frequency / timer_frequency;
+}
+
+static inline uint32_t get_timer_max_counter_custom(uint32_t timer_frequency, uint32_t timer_prescaler)
+{
+	const uint32_t counter_increase_frequency = clock_frequency / timer_prescaler;
+
+	return counter_increase_frequency / timer_frequency;
+}
+
+#define GET_TIMER_MAX_COUNTER_CUSTOM(timer_frequency, timer_prescaler) (clock_frequency / (timer_prescaler) / (timer_frequency))
+extern uint16_t pwm_duty_steps;

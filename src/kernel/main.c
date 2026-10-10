@@ -4,6 +4,7 @@
 #include "interrupt_vectors.h"
 #include "intrinsics.h"
 #include "nvic.h"
+#include "scheduler.h"
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
@@ -14,8 +15,6 @@
 #	include <stdlib.h>
 #	include <string.h>
 #endif
-
-uint32_t clock_frequency = 96 * 1000 * 1000;
 
 void wait_seconds(float seconds)
 {
@@ -65,6 +64,8 @@ void bss_section_init(void)
 	for (uint32_t *p = &__bss_start; p < &__bss_end; p++)
 		*p = 0;
 }
+
+// extern that shit so it's available someplace elses
 
 int main(void)
 {
@@ -117,15 +118,19 @@ int main(void)
 	// nvic_trigger_irq(TIM2_IRQn);
 
 	configure_rcc_timers();
-	switch_to_pll();
+	switch_to_pll(clock_frequency / 1'000'000);
 	enable_timers_rcc();
 
-	configure_timerPWM(TIMER4, ch1, 96, 1000); // 1 Khz pwm
-											   // set_pwm_duty(TIMER4, ch1, 1000);
+	// Need customer values if i want something else
+	// uint16_t pwm_prescaler = timer_prescaler;
+	static const uint16_t pwm_prescaler	 = 12; // Lead to duty step of 800
+	uint16_t			  pwm_duty_steps = GET_TIMER_MAX_COUNTER_CUSTOM(10000, pwm_prescaler);
+	configure_timerPWM(TIMER4, ch1, pwm_prescaler, pwm_duty_steps); // 10 Khz pwm
+																	// set_pwm_duty(TIMER4, ch1, 1000);
 
-	configure_timer32(TIMER2, 96, 100);			// 1 Mhz / 100 = 10 Khz
-	configure_timer16(TIMER3, 96, 1000);		// 1 Khz
-	configure_timer32(TIMER5, 96, 1000000 / 2); // 2 Hz
+	configure_timer32(TIMER2, timer_prescaler, get_timer_max_counter(scheduler_frequency)); // 1 Mhz / 100 = 10 Khz
+	configure_timer16(TIMER3, timer_prescaler, get_timer_max_counter(1'000));				// 1 Khz
+	configure_timer32(TIMER5, timer_prescaler, get_timer_max_counter(2));					// 2 Hz
 
 	nvic_enable_irq(TIM2_IRQn);
 	nvic_enable_irq(TIM3_IRQn);

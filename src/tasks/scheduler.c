@@ -37,7 +37,7 @@ void Timer3Handler(void)
 	static volatile int16_t brightness = 0;
 	if (brightness == 0)
 		dir = 1; // at bottom, go up
-	if (brightness == 1000)
+	if (brightness == pwm_duty_steps)
 		dir = -1; // at top, go down
 
 	brightness += dir;
@@ -89,6 +89,21 @@ void Timer2Handler(void)
 			}
 		}
 	}
+}
+
+uint32_t get_system_tick()
+{
+	return scheduler_tick;
+}
+
+double get_time_ms()
+{
+	return (double)scheduler_tick / 10;
+}
+
+double get_time_s()
+{
+	return (double)scheduler_tick / 10;
 }
 
 // This version is closer to how it is done.

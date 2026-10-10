@@ -22,7 +22,7 @@ void enable_gpio_clock(enum GPIO_PORT_LETTER letter)
 	}
 }
 
-void switch_to_pll()
+void switch_to_pll(uint8_t clock_frequency_MHz)
 {
 
 	// configure pll

@@ -582,4 +582,4 @@ extern volatile rcc_register_t *const rcc;
 void enable_gpio_clock(enum GPIO_PORT_LETTER letter);
 void configure_rcc_timers();
 void enable_timers_rcc();
-void switch_to_pll();
+void switch_to_pll(uint8_t clock_frequency_Mhz);
