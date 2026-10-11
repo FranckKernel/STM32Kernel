@@ -144,6 +144,7 @@ if [[ "$RENODE_OR_REAL_MACHINE" == "real" ]]; then
 	echo "[RUN]: Flashing the kernel"
 	st-flash --connect-under-reset write "$BUILD_DIR/$TARGET.bin" 0x8000000
 	st-flash reset
+	picocom --baud 38400 --databits 8 --parity n --stopbits 1 /dev/ttyACM0
 	if [[ "$DEBUG_OR_RELEASE" == "debug" ]]; then
 		st-util
 	fi
