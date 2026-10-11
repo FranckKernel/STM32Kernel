@@ -19,9 +19,9 @@ void Timer5Handler(void)
 	timers[TIMER5]->sr.update_interrupt_pending = 0; // clear first
 	static uint8_t pin_state					= 0;
 
-	gpio_write(GPIOA, 5, pin_state);
-
-	pin_state = !pin_state;
+	// gpio_write(GPIOA, 5, pin_state);
+	//
+	// pin_state = !pin_state;
 }
 
 // 4 is used for pwm right now

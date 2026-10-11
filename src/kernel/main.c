@@ -171,8 +171,8 @@ int main(void)
 
 	while (1)
 	{
-		// uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);
-		// gpio_write(GPIOB, 6, 1);
+		uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);
+		gpio_write(GPIOA, 5, button);
 		// set_pwm_duty(TIMER4, ch1, brightness);
 		// wait_seconds(0.001);
 
