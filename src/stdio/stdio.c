@@ -69,15 +69,28 @@ int fprintf(FILE *restrict stream, const char *restrict format, ...)
 
 int vfprintf(FILE *stream, const char *restrict format, va_list args)
 {
-	// Temporary. Must implement Vsnprintf
 	char buffer[1000];
-	int	 retb = vsnprintf(buffer, 1000, format, args);
+	int	 retb = vsnprintf(buffer, sizeof(buffer), format, args);
+	if (retb < 0)
+		return -1;
+
+	// vsnprintf returns the number of characters that would have
+	// been produced, excluding the terminating NUL.
+	if ((size_t)retb >= sizeof(buffer))
+	{
+		// Output was truncated. Handle this properly.
+		// A single fixed buffer cannot support arbitrary output.
+		return -1;
+	}
 
 	int retp = fputs(buffer, stream);
+	if (retp < 0)
+		return -1;
 
-	return -1;
+	return retb;
 }
 
+// =================  Approaching hell but not quite right there
 int sprintf(char *restrict str, const char *restrict format, ...)
 {
 	va_list args;
@@ -88,6 +101,7 @@ int sprintf(char *restrict str, const char *restrict format, ...)
 	va_end(args);
 	return result;
 }
+
 int snprintf(char *restrict str, size_t size, const char *restrict format, ...)
 {
 	va_list args;
@@ -97,4 +111,11 @@ int snprintf(char *restrict str, size_t size, const char *restrict format, ...)
 
 	va_end(args);
 	return result;
+}
+
+// ================= Need to implement vsnprintf and vsprintf bellow!
+int vsnprintf(char *restrict str, size_t size, const char *restrict format, va_list args)
+{
+
+	return -1;
 }
