@@ -1,15 +1,15 @@
 #include "gpio.h"
+#include "scheduler.h"
+#include "stdio.h"
 #include "task.h"
 #include "timer.h"
-
-uint32_t timer_frequency = 50'000;
 
 task_t task_create(task_public_t data)
 {
 	double period_ms = data.period_ms;
 
-	uint32_t task_frequency = 1 / period_ms;
-	uint32_t divider		= timer_frequency / task_frequency;
+	uint32_t task_frequency = (uint32_t)(1000.f / period_ms);
+	uint32_t divider		= scheduler_frequency / task_frequency;
 
 	task_t task = {.func = data.func, .priority = data.priority, .frequency_divider = divider, .last_run_tick = 0, .ready = false};
 	return task;
@@ -79,6 +79,7 @@ void task_reorder()
 void simple_task()
 {
 	// do something
+	puts("Hello\r\n");
 }
 
 void simple_task2()

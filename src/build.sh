@@ -61,7 +61,7 @@ CFLAGS=(
 	"-O3"
 	"-ffunction-sections"
 	"-fdata-sections"
-	"-flto"
+	# "-flto"
 )
 
 LDFLAGS=(
@@ -70,7 +70,7 @@ LDFLAGS=(
 	# -nostdlib does no startfiles and -nodefaultlibs. this way, you can comment in and out which you want
 	# -nodefaultlibs is kinda undone by -lgcc and the rest
 	"-Wl,--gc-sections" # garbage‑collect unused sections
-	"-flto"
+	# "-flto"
 	"-lm"
 )
 
@@ -103,17 +103,17 @@ echo "[CC] compiling..."
 $CC "${CFLAGS[@]}" -c kernel/startup.s -o "$BUILD_DIR"/startup.o
 $CC "${CFLAGS[@]}" -c kernel/vectors.s -o "$BUILD_DIR"/vectors.o
 $CC "${CFLAGS[@]}" -c kernel/isr_default.s -o "$BUILD_DIR"/isr_default.o
-$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS" "-I$FLASH" "-I$USART"
+$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS" "-I$FLASH" "-I$USART" "-I$STDIO"
 
 $CC "${CFLAGS[@]}" -c "$STDLIB/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO" "-I$USART"
 $CC "${CFLAGS[@]}" -c "$STDLIB/string.c" -o "$BUILD_DIR"/string.o
-$CC "${CFLAGS[@]}" -c "$STDIO/stdio.c" -o "$BUILD_DIR"/string.o "-I$STDLIB"
+$CC "${CFLAGS[@]}" -c "$STDIO/stdio.c" -o "$BUILD_DIR"/stdio.o "-I$STDLIB"
 
 $CC "${CFLAGS[@]}" -c "./cpu/nvic/nvic.c" -o "$BUILD_DIR"/nvic.o "-I$COMMON"
 
 $CC "${CFLAGS[@]}" -c "$GPIO/gpio.c" -o "$BUILD_DIR"/gpio.o
 $CC "${CFLAGS[@]}" -c "$TIMERS/timer.c" -o "$BUILD_DIR"/timer.o
-$CC "${CFLAGS[@]}" -c "$TASKS/task.c" -o "$BUILD_DIR"/task.o "-I$GPIO" "-I$TIMERS"
+$CC "${CFLAGS[@]}" -c "$TASKS/task.c" -o "$BUILD_DIR"/task.o "-I$GPIO" "-I$TIMERS" "-I$STDIO"
 $CC "${CFLAGS[@]}" -c "$TASKS/scheduler.c" -o "$BUILD_DIR"/scheduler.o "-I$TIMERS" "-I$GPIO"
 $CC "${CFLAGS[@]}" -c "$FLASH/flash.c" -o "$BUILD_DIR"/flash.o
 $CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO" "-I$FLASH"

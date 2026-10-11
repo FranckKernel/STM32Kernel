@@ -5,6 +5,7 @@
 #include "macros.h"
 #include "nvic.h"
 #include "scheduler.h"
+#include "stdio.h"
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
@@ -97,7 +98,7 @@ int main(void)
 #	endif
 #endif
 
-	// rcc->apb1enr.usart2_enable = 1; // byte access allowed for ahb1
+	rcc->apb1enr.usart2_enable = 1; // byte access allowed for ahb1
 
 	usart_config_t u2_config;
 	u2_config.baudrate				 = usart_baudrate_38400;
@@ -108,7 +109,7 @@ int main(void)
 	u2_config.hardware_control		 = usart_hwc_none;
 	u2_config.oversampling_not_over8 = usart_oversampling_16;
 
-	// config_usart(usart2, &u2_config);
+	config_usart(usart2, &u2_config);
 
 	// The blue led pin
 	gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
@@ -146,8 +147,8 @@ int main(void)
 	// A3 -> USART2 RX
 
 	// The task for timer 2.
-	task_add((task_public_t){.func = simple_task, .period_ms = 4, .priority = 3});
-	task_add((task_public_t){.func = simple_task2, .period_ms = 0.1, .priority = 10});
+	task_add((task_public_t){.func = simple_task, .period_ms = 1000, .priority = 3});
+	task_add((task_public_t){.func = simple_task2, .period_ms = 1, .priority = 10});
 	task_reorder();
 	// // reorder the tasks
 
@@ -188,7 +189,8 @@ int main(void)
 		uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);
 		gpio_write(GPIOA, 5, button);
 		// set_pwm_duty(TIMER4, ch1, brightness);
-		wait_seconds(1);
+		// puts("Hello\r\n");
+		// wait_seconds(1);
 
 		// nvic_trigger_irq(TIM5_IRQn);
 	}

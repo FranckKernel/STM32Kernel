@@ -22,12 +22,13 @@ void config_usart(volatile usart_t *const usart, const usart_config_t *const con
 
 	// Figure out the divider. 32 bit, 23 bit mantissa, 24 bit of integer precision.
 	// 2^24 = 16 million. Slower then PLL reachable clock speed
-	double clock_frequency_f = clock_frequency;
-
-	double divider			= clock_frequency_f / (double)config->baudrate;
-	double divider_fraction = divider - (uint32_t)divider;
+	double clock_frequency_f = clock_frequency / 2.f;
 
 	uint8_t oversampling = config->oversampling_not_over8 ? 8 : 16;
+
+	double divider = clock_frequency_f / (double)config->baudrate;
+	divider /= (double)oversampling;
+	double divider_fraction = divider - (uint32_t)divider;
 
 	uint16_t div			  = (uint16_t)divider;
 	uint8_t	 fraction_diviser = (uint8_t)((double)oversampling * divider_fraction);
@@ -128,7 +129,7 @@ bool usart_write_u8(volatile usart_t *const usart, uint8_t value)
 		// What if there's data in the reader? (Heard its fine and not gonna happen)
 		// For now, i'm leaving 2 scheduler tick, which is horrible.
 		// But what if it schedules mid function.
-		if (get_system_tick() - system_tick >= 2)
+		if (get_system_tick() - system_tick >= 1000000)
 		{
 			// With this check, if the scheduler is called twice while this runs
 			// We leave early, something bad happened
@@ -146,7 +147,7 @@ int usart_write_n(volatile usart_t *const usart, char *str, int len)
 	for (int i = 0; i < len; i++)
 	{
 		bool timed_out = usart_write_u8(usart, str[i]);
-		if (timed_out || get_system_tick() - system_tick >= 2)
+		if (timed_out || get_system_tick() - system_tick >= 100000)
 		{
 			return i;
 		}
