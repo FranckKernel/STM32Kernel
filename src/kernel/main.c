@@ -1,5 +1,4 @@
 #include "clock.h"
-#include "flash.h"
 #include "gpio.h"
 #include "interrupt_vectors.h"
 #include "intrinsics.h"
@@ -9,6 +8,8 @@
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
+#include "usart.h"
+#include "usart_public.h"
 #include <stdint.h>
 
 static const uint16_t pwm_prescaler	 = 12; // Lead to duty step of 800
@@ -95,6 +96,19 @@ int main(void)
 	// char *arr = malloc(100); // This line cause crash
 #	endif
 #endif
+
+	rcc->apb1enr.usart2_enable = 1; // byte access allowed for ahb1
+
+	usart_config_t u2_config;
+	u2_config.baudrate				 = usart_baudrate_38400;
+	u2_config.word_length			 = usart_word_lengths_8bits;
+	u2_config.stop_bit				 = 1;
+	u2_config.parity				 = usart_parity_none;
+	u2_config.mode					 = usart_mode_both;
+	u2_config.hardware_control		 = usart_hwc_none;
+	u2_config.oversampling_not_over8 = usart_oversampling_16;
+
+	config_usart(usart2, &u2_config);
 
 	// The blue led pin
 	gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);

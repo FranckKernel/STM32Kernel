@@ -1,5 +1,5 @@
+#include "usart_public.h"
 #include <errno.h>
-// #include <reent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -8,6 +8,16 @@ extern char __heap_start;
 extern char __stack_start;
 
 static char *heap_end = &__heap_start;
+
+#ifndef STDIN_FILENO
+#	define STDIN_FILENO 0
+#endif
+#ifndef STDOUT_FILENO
+#	define STDOUT_FILENO 1
+#endif
+#ifndef STDERROR_FILENO
+#	define STDERROR_FILENO 2
+#endif
 
 void *_sbrk(int incr)
 {
@@ -33,11 +43,39 @@ void *_sbrk(int incr)
 
 int _write(int file, char *ptr, int len)
 {
-	(void)file;
-	(void)ptr;
+	if (len < 0)
+	{
+		return -1;
+	}
+
+	switch (file)
+	{
+	case (STDOUT_FILENO):
+	{
+		return usart_write_n(usart2, ptr, len);
+	}
+	case (STDERROR_FILENO):
+	{
+		// could use usart1 for std err.
+		// But anyway... We can imagine how
+		// A file nbr can represent where to right
+		int a = usart_write(usart2, "\x1b[31m"); // Red
+		if (a != 5)
+		{
+			return a;
+		}
+		int b = usart_write_n(usart2, ptr, len);
+		if (b != len)
+		{
+			return a + b;
+		}
+		int c = usart_write(usart2, "\x1b[0m"); // Reset color and newline
+		return a + b + c;
+	}
+	default: return -1;
+	}
 
 	/* No console/UART wired up yet — pretend we wrote it all. */
-	return len;
 }
 
 // Reentrant version (used by printf)
@@ -52,6 +90,16 @@ int _read(int file, char *ptr, int len)
 	(void)file;
 	(void)ptr;
 	(void)len;
+
+	switch (file)
+	{
+	case (STDIN_FILENO):
+	{
+		// Maybe something to do with usart reciever. But it's currently
+		// using an interrupt...
+		break;
+	}
+	}
 
 	return 0; /* EOF */
 }

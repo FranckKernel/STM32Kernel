@@ -36,6 +36,7 @@ RENODE_OR_REAL_MACHINE="${2:-real}"
 BUILD_DIR="./build"
 
 GPIO="./gpio"
+STDIO="./stdio"
 STDLIB="./stdlib"
 COMMON="./common"
 CPU="./cpu"
@@ -99,9 +100,11 @@ echo "[CC] compiling..."
 $CC "${CFLAGS[@]}" -c kernel/startup.s -o "$BUILD_DIR"/startup.o
 $CC "${CFLAGS[@]}" -c kernel/vectors.s -o "$BUILD_DIR"/vectors.o
 $CC "${CFLAGS[@]}" -c kernel/isr_default.s -o "$BUILD_DIR"/isr_default.o
-$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS" "-I$FLASH"
+$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS" "-I$FLASH" "-I$USART"
 
-$CC "${CFLAGS[@]}" -c "./stdlib/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO"
+$CC "${CFLAGS[@]}" -c "$STDLIB/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO" "-I$USART"
+$CC "${CFLAGS[@]}" -c "$STDLIB/string.c" -o "$BUILD_DIR"/string.o
+$CC "${CFLAGS[@]}" -c "$STDIO/stdio.c" -o "$BUILD_DIR"/string.o "-I$STDLIB"
 
 $CC "${CFLAGS[@]}" -c "./cpu/nvic/nvic.c" -o "$BUILD_DIR"/nvic.o "-I$COMMON"
 
@@ -112,7 +115,7 @@ $CC "${CFLAGS[@]}" -c "$TASKS/scheduler.c" -o "$BUILD_DIR"/scheduler.o "-I$TIMER
 $CC "${CFLAGS[@]}" -c "$FLASH/flash.c" -o "$BUILD_DIR"/flash.o
 $CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO" "-I$FLASH"
 
-$CC "${CFLAGS[@]}" -c "$USART/usart.c" -o "$BUILD_DIR"/usart.o "-I$COMMON"
+$CC "${CFLAGS[@]}" -c "$USART/usart.c" -o "$BUILD_DIR"/usart.o "-I$COMMON" "-I$TIMERS" "-I$STDLIB"
 
 echo "[LD] linking..."
 

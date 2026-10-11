@@ -1,5 +1,6 @@
 #pragma once
 #include "assert.h"
+#include "usart_public.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -25,12 +26,14 @@ typedef struct
 } usart_data_t;
 
 // ================================== USART Baud Rate Register (BRR)
-// Usart Divider = DIV_Mantissa + (DIV_Fraction / 8 × (2 – OVER8))
+// Usart Divider = DIV_Mantissa +  { DIV_Fraction / [8 × (2 – OVER8)] }
+// With 96Mhz, we need Divider = 2500
 typedef struct
 {
 	uint32_t div_fraction : 4;
 	uint32_t div_mantissa : 12;
-	// WE
+	// It's fixed signed representation. mantissa = whole number
+	// fraction = bits of minus index. (2^-1, 2^-2, 2^-3, 2^-4)
 } usart_brr_t;
 
 STATIC_ASSERT(sizeof(usart_brr_t) == sizeof(uint32_t), "brr must be size of 32 bit");
@@ -55,19 +58,6 @@ typedef struct
 } usart_status_t;
 
 // ================================== USART Control Register 1 (CR1)
-enum usart_word_length
-{
-	usart_word_length_8bits = 0b0,
-	usart_word_length_9bits = 0b1,
-
-};
-
-enum usart_oversampling
-{
-	// Commonly called OVER8
-	usart_oversampling_16 = 0b0,
-	usart_oversampling_8  = 0b1,
-};
 
 typedef struct
 {
@@ -94,23 +84,69 @@ typedef struct
 	enum usart_oversampling oversampling : 1; // (RG note) : called over8 refers to. over8 is the oversampling
 
 } usart_cr1_t;
-
 STATIC_ASSERT(sizeof(usart_cr1_t) == sizeof(uint32_t), "USART CR1 must be 32 bit long!");
 
-// ===================================== The META Struct
+// ================================== USART Control Register 2 (CR2)
+
+enum usart_stop_bits
+{
+	usart_stop_bits_1  = 0b00,
+	usart_stop_bits_05 = 0b01,
+	usart_stop_bits_2  = 0b10,
+
+};
+
 typedef struct
 {
-	uint32_t	 status;
-	usart_data_t data;
-	uint32_t	 brr;
-	uint32_t	 cr1;
-	uint32_t	 cr2;
-	uint32_t	 cr3;
-	uint32_t	 gtpr;
-} usart_t;
+	uint32_t address : 3;			   // bit 0-3
+	uint32_t _reserved1 : 1;		   // bit 4
+	uint32_t line_break_detection : 1; // bit 5 (10 bit break = 0, 11 bit break = 1)
+	uint32_t lbd_interrupt_enable : 1; // bit 6
+	uint32_t _reserved2 : 1;		   // bit 7
+	uint32_t last_bit_clock_pulse : 1; // bit 8 (Pretty much irrelevant)
 
-extern volatile usart_t *const usart2; // In APB1
-extern volatile usart_t *const usart1; // In AHB2
-extern volatile usart_t *const usart6; // In AHB2
+	uint32_t clock_phase : 1; // can leave these two default
+	uint32_t clock_polarity : 1;
+
+	uint32_t			 clock_enable : 1; // Makes it usart, otherwise uart
+	enum usart_stop_bits stop_bits : 2;
+	uint32_t			 lin_mode_enable : 1;
+
+} usart_cr2_t;
+
+STATIC_ASSERT(sizeof(usart_cr2_t) == sizeof(uint32_t), "USART CR2 must be 32 bit long!");
+
+// ================================== USART Control Register 3 (CR3)
+
+typedef struct
+{
+	uint32_t error_interrupt_enable : 1;
+	uint32_t irda_mode_enable : 1;
+	uint32_t irda_low_power : 1;
+	uint32_t half_duplex_selected : 1;
+	uint32_t smart_card_nack_enable : 1;
+	uint32_t smart_card_mode_enable : 1;
+	uint32_t dma_enable_reciever : 1;
+	uint32_t dma_enable_transmitter : 1;
+	uint32_t rts_hardware_control_flow_enabled : 1;
+	uint32_t cts_hardware_control_flow_enabled : 1;
+	uint32_t cts_interrupt_enable : 1;
+	uint32_t onebit : 1;
+
+} usart_cr3_t;
+
+STATIC_ASSERT(sizeof(usart_cr3_t) == sizeof(uint32_t), "USART CR3 must be 32 bit long!");
+
+// ===================================== The META Struct
+typedef struct usart
+{
+	usart_status_t status;
+	usart_data_t   data;
+	usart_brr_t	   brr;
+	usart_cr1_t	   cr1;
+	usart_cr2_t	   cr2;
+	usart_cr3_t	   cr3;
+	uint32_t	   gtpr;
+} usart_t;
 
 // =================================== The functions
