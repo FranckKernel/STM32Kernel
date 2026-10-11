@@ -1,0 +1,152 @@
+
+build/task.o:     file format elf32-littlearm
+
+
+Disassembly of section .text.task_create:
+
+00000000 <task_create>:
+   0:	b082      	sub	sp, #8
+   2:	b510      	push	{r4, lr}
+   4:	490f      	ldr	r1, [pc, #60]	@ (44 <task_create+0x44>)
+   6:	4604      	mov	r4, r0
+   8:	e9cd 2302 	strd	r2, r3, [sp, #8]
+   c:	2000      	movs	r0, #0
+   e:	e9dd 2304 	ldrd	r2, r3, [sp, #16]
+  12:	f7ff fffe 	bl	0 <__aeabi_ddiv>
+			12: R_ARM_THM_CALL	__aeabi_ddiv
+  16:	f7ff fffe 	bl	0 <__aeabi_d2uiz>
+			16: R_ARM_THM_CALL	__aeabi_d2uiz
+  1a:	f89d 1018 	ldrb.w	r1, [sp, #24]
+  1e:	f8dd c008 	ldr.w	ip, [sp, #8]
+  22:	7321      	strb	r1, [r4, #12]
+  24:	2200      	movs	r2, #0
+  26:	f242 7310 	movw	r3, #10000	@ 0x2710
+  2a:	f8c4 c000 	str.w	ip, [r4]
+  2e:	fbb3 f3f0 	udiv	r3, r3, r0
+  32:	7362      	strb	r2, [r4, #13]
+  34:	4620      	mov	r0, r4
+  36:	e9c4 3201 	strd	r3, r2, [r4, #4]
+  3a:	e8bd 4010 	ldmia.w	sp!, {r4, lr}
+  3e:	b002      	add	sp, #8
+  40:	4770      	bx	lr
+  42:	bf00      	nop
+  44:	408f4000 	.word	0x408f4000
+
+Disassembly of section .text.task_add:
+
+00000000 <task_add>:
+   0:	b084      	sub	sp, #16
+   2:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+   4:	4d16      	ldr	r5, [pc, #88]	@ (60 <task_add+0x60>)
+   6:	ac06      	add	r4, sp, #24
+   8:	e884 000f 	stmia.w	r4, {r0, r1, r2, r3}
+   c:	f895 4100 	ldrb.w	r4, [r5, #256]	@ 0x100
+  10:	2c0f      	cmp	r4, #15
+  12:	d820      	bhi.n	56 <task_add+0x56>
+  14:	e9dd 2308 	ldrd	r2, r3, [sp, #32]
+  18:	4607      	mov	r7, r0
+  1a:	4912      	ldr	r1, [pc, #72]	@ (64 <task_add+0x64>)
+  1c:	2000      	movs	r0, #0
+  1e:	f7ff fffe 	bl	0 <__aeabi_ddiv>
+			1e: R_ARM_THM_CALL	__aeabi_ddiv
+  22:	f7ff fffe 	bl	0 <__aeabi_d2uiz>
+			22: R_ARM_THM_CALL	__aeabi_d2uiz
+  26:	eb05 1304 	add.w	r3, r5, r4, lsl #4
+  2a:	4601      	mov	r1, r0
+  2c:	f89d 0028 	ldrb.w	r0, [sp, #40]	@ 0x28
+  30:	7318      	strb	r0, [r3, #12]
+  32:	0120      	lsls	r0, r4, #4
+  34:	3401      	adds	r4, #1
+  36:	2200      	movs	r2, #0
+  38:	f885 4100 	strb.w	r4, [r5, #256]	@ 0x100
+  3c:	502f      	str	r7, [r5, r0]
+  3e:	609a      	str	r2, [r3, #8]
+  40:	735a      	strb	r2, [r3, #13]
+  42:	f242 7210 	movw	r2, #10000	@ 0x2710
+  46:	fbb2 f2f1 	udiv	r2, r2, r1
+  4a:	605a      	str	r2, [r3, #4]
+  4c:	e8bd 40f8 	ldmia.w	sp!, {r3, r4, r5, r6, r7, lr}
+  50:	2001      	movs	r0, #1
+  52:	b004      	add	sp, #16
+  54:	4770      	bx	lr
+  56:	e8bd 40f8 	ldmia.w	sp!, {r3, r4, r5, r6, r7, lr}
+  5a:	2000      	movs	r0, #0
+  5c:	b004      	add	sp, #16
+  5e:	4770      	bx	lr
+  60:	00000000 	.word	0x00000000
+			60: R_ARM_ABS32	task_list
+  64:	408f4000 	.word	0x408f4000
+
+Disassembly of section .text.task_swap:
+
+00000000 <task_swap>:
+   0:	b500      	push	{lr}
+   2:	468c      	mov	ip, r1
+   4:	4686      	mov	lr, r0
+   6:	c80f      	ldmia	r0, {r0, r1, r2, r3}
+   8:	b085      	sub	sp, #20
+   a:	e88d 000f 	stmia.w	sp, {r0, r1, r2, r3}
+   e:	e89c 000f 	ldmia.w	ip, {r0, r1, r2, r3}
+  12:	e88e 000f 	stmia.w	lr, {r0, r1, r2, r3}
+  16:	e89d 000f 	ldmia.w	sp, {r0, r1, r2, r3}
+  1a:	e88c 000f 	stmia.w	ip, {r0, r1, r2, r3}
+  1e:	b005      	add	sp, #20
+  20:	bd00      	pop	{pc}
+  22:	bf00      	nop
+
+Disassembly of section .text.task_reorder:
+
+00000000 <task_reorder>:
+   0:	b5f0      	push	{r4, r5, r6, r7, lr}
+   2:	4d18      	ldr	r5, [pc, #96]	@ (64 <task_reorder+0x64>)
+   4:	f895 6100 	ldrb.w	r6, [r5, #256]	@ 0x100
+   8:	2e01      	cmp	r6, #1
+   a:	b085      	sub	sp, #20
+   c:	d928      	bls.n	60 <task_reorder+0x60>
+   e:	2701      	movs	r7, #1
+  10:	f04f 0c00 	mov.w	ip, #0
+  14:	3e01      	subs	r6, #1
+  16:	f10c 0301 	add.w	r3, ip, #1
+  1a:	eb05 140c 	add.w	r4, r5, ip, lsl #4
+  1e:	eb05 1e03 	add.w	lr, r5, r3, lsl #4
+  22:	7b22      	ldrb	r2, [r4, #12]
+  24:	f89e 100c 	ldrb.w	r1, [lr, #12]
+  28:	4291      	cmp	r1, r2
+  2a:	fa5f fc83 	uxtb.w	ip, r3
+  2e:	d806      	bhi.n	3e <task_reorder+0x3e>
+  30:	45b4      	cmp	ip, r6
+  32:	d1f0      	bne.n	16 <task_reorder+0x16>
+  34:	b9a7      	cbnz	r7, 60 <task_reorder+0x60>
+  36:	2701      	movs	r7, #1
+  38:	f04f 0c00 	mov.w	ip, #0
+  3c:	e7eb      	b.n	16 <task_reorder+0x16>
+  3e:	e894 000f 	ldmia.w	r4, {r0, r1, r2, r3}
+  42:	e88d 000f 	stmia.w	sp, {r0, r1, r2, r3}
+  46:	e89e 000f 	ldmia.w	lr, {r0, r1, r2, r3}
+  4a:	e884 000f 	stmia.w	r4, {r0, r1, r2, r3}
+  4e:	e89d 000f 	ldmia.w	sp, {r0, r1, r2, r3}
+  52:	45b4      	cmp	ip, r6
+  54:	e88e 000f 	stmia.w	lr, {r0, r1, r2, r3}
+  58:	f04f 0700 	mov.w	r7, #0
+  5c:	d1db      	bne.n	16 <task_reorder+0x16>
+  5e:	e7ea      	b.n	36 <task_reorder+0x36>
+  60:	b005      	add	sp, #20
+  62:	bdf0      	pop	{r4, r5, r6, r7, pc}
+  64:	00000000 	.word	0x00000000
+			64: R_ARM_ABS32	task_list
+
+Disassembly of section .text.simple_task:
+
+00000000 <simple_task>:
+   0:	4801      	ldr	r0, [pc, #4]	@ (8 <simple_task+0x8>)
+   2:	f7ff bffe 	b.w	0 <puts>
+			2: R_ARM_THM_JUMP24	puts
+   6:	bf00      	nop
+   8:	00000000 	.word	0x00000000
+			8: R_ARM_ABS32	.rodata.simple_task.str1.4
+
+Disassembly of section .text.simple_task2:
+
+00000000 <simple_task2>:
+   0:	4770      	bx	lr
+   2:	bf00      	nop

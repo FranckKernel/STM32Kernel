@@ -98,14 +98,14 @@ uint32_t get_system_tick()
 	return scheduler_tick;
 }
 
-double get_time_ms()
-{
-	return (double)scheduler_tick / 10;
-}
-
 double get_time_s()
 {
-	return (double)scheduler_tick / 10;
+	return (double)scheduler_tick / ((double)scheduler_frequency);
+}
+
+double get_time_ms()
+{
+	return (double)scheduler_tick / ((double)scheduler_frequency / 1000.f);
 }
 
 // This version is closer to how it is done.

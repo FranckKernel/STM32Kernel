@@ -47,4 +47,33 @@ size_t strnlen(const char *s, size_t maxlen)
 	return maxlen;
 }
 
+char *strcpy(char *restrict dest, const char *restrict src)
+{
+	memcpy(dest, src, strlen(src) + 1);
+	return dest;
+}
+char *strncpy(char *restrict dest, const char *restrict src, size_t dsize)
+{
+
+	size_t len = strnlen(src, dsize);
+	memcpy(dest, src, len);
+	if (len < dsize)
+	{
+
+		memset(dest + len, '\0', dsize - len);
+	}
+	return dest;
+}
+
+/*
+Return the number of byte written, including the null terminator;
+Custom function
+*/
+size_t strwrite(char *restrict dest, const char *restrict src)
+{
+	size_t len = strlen(src);
+	memcpy(dest, src, len + 1);
+	return len + 1;
+}
+
 #endif

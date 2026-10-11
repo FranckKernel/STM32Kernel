@@ -110,6 +110,11 @@ int main(void)
 	u2_config.oversampling_not_over8 = usart_oversampling_16;
 
 	config_usart(usart2, &u2_config);
+	while (true)
+	{
+		// puts("Configurated USART");
+		int a = usart_write(usart2, "test"); // Red
+	}
 
 	// The blue led pin
 	gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
@@ -151,6 +156,8 @@ int main(void)
 	task_add((task_public_t){.func = simple_task2, .period_ms = 1, .priority = 10});
 	task_reorder();
 	// // reorder the tasks
+
+	puts("Got here");
 
 	// nvic_trigger_irq(TIM2_IRQn);
 

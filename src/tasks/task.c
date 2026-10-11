@@ -79,7 +79,7 @@ void task_reorder()
 void simple_task()
 {
 	// do something
-	puts("Hello\r\n");
+	puts("Hello\n");
 }
 
 void simple_task2()

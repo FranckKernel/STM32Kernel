@@ -27,7 +27,7 @@ typedef struct
 typedef struct
 {
 	void (*func)(void);
-	double period_ms;
+	float period_ms;
 	/* We want the task to be run each N ms. So we need to know what the timer frequency is.
 	   f = 1 / (T * 0.001) = 1000 / T
 
