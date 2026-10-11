@@ -1,5 +1,5 @@
 #pragma once
-#include "assert.h"
+#include "static_assert.h"
 #include "usart_public.h"
 #include <stdbool.h>
 #include <stddef.h>

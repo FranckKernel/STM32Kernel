@@ -61,6 +61,7 @@ CFLAGS=(
 	"-O3"
 	"-ffunction-sections"
 	"-fdata-sections"
+	"-flto"
 )
 
 LDFLAGS=(
@@ -69,6 +70,8 @@ LDFLAGS=(
 	# -nostdlib does no startfiles and -nodefaultlibs. this way, you can comment in and out which you want
 	# -nodefaultlibs is kinda undone by -lgcc and the rest
 	"-Wl,--gc-sections" # garbage‑collect unused sections
+	"-flto"
+	"-lm"
 )
 
 LDFLAGS_LIBC=(

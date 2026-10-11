@@ -39,10 +39,6 @@ void perror(const char *s)
 }
 
 // ============================== Going into the printfs
-int vprintf(const char *restrict format, va_list args)
-{
-	return vfprintf(stdout, format, args);
-}
 
 int printf(const char *restrict format, ...)
 {
@@ -55,6 +51,50 @@ int printf(const char *restrict format, ...)
 	return result;
 }
 
+int vprintf(const char *restrict format, va_list args)
+{
+	return vfprintf(stdout, format, args);
+}
+
+int fprintf(FILE *restrict stream, const char *restrict format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	int result = vfprintf(stream, format, args);
+
+	va_end(args);
+	return result;
+}
+
 int vfprintf(FILE *stream, const char *restrict format, va_list args)
 {
+	// Temporary. Must implement Vsnprintf
+	char buffer[1000];
+	int	 retb = vsnprintf(buffer, 1000, format, args);
+
+	int retp = fputs(buffer, stream);
+
+	return -1;
+}
+
+int sprintf(char *restrict str, const char *restrict format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	int result = vsprintf(str, format, args);
+
+	va_end(args);
+	return result;
+}
+int snprintf(char *restrict str, size_t size, const char *restrict format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	int result = vsnprintf(str, size, format, args);
+
+	va_end(args);
+	return result;
 }

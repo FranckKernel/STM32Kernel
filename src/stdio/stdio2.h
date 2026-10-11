@@ -18,26 +18,6 @@ extern "C"
 	// #define USE_OLD_KPRINTF_ARGC
 	// #define CHECK_ARGC
 
-#ifdef USE_OLD_KPRINTF_ARGC
-#	if defined(USE_OLD_KPRINTF_ARGC) && defined(CHECK_ARGC)
-#		error "Cannot define both USE_OLD_KPRINTF_ARGC and CHECK_ARGC"
-#	endif
-
-#	define kprintf(...) kprintf_argc(PP_NARG(__VA_ARGS__), __VA_ARGS__)
-#else
-#	ifdef CHECK_ARGC
-/*
-Needs fpu support. Call terminal writestring otherwise
-*/
-/*
-	No support for 64 bit value in 32bit. It will cause a bug;
-*/
-#		define kprintf(...) kprintf2_argc_check(PP_NARG(__VA_ARGS__), __VA_ARGS__)
-#	else
-#		define kprintf(...) kprintf2(__VA_ARGS__)
-#	endif
-#endif
-
 	enum PRINTF_FMT_OPTION
 	{
 		FMT_OPTION_NONE				 = 0,
@@ -78,7 +58,6 @@ Needs fpu support. Call terminal writestring otherwise
 	};
 
 	// Function to print a string to your terminal
-	extern void terminal_writestring(const char *str);
 
 	void test_printf2(void);
 	void test_assert(void);

@@ -33,12 +33,14 @@ int fputs(const char *restrict s, FILE *restrict stream);
 
 void perror(const char *s);
 
-int vprintf(const char *restrict format, va_list args);
-int printf(const char *restrict format, ...);
-int vfprintf(FILE *stream, const char *restrict format, va_list args);
-int fprintf(FILE *restrict stream, const char *restrict format, ...);
+int vprintf(const char *restrict format, va_list args) __attribute__((format(printf, 1, 0)));
+int printf(const char *restrict format, ...) __attribute__((format(printf, 1, 2)));
 
-int vsprintf(char *restrict str, const char *restrict format, va_list args);
-int sprintf(char *restrict str, const char *restrict format, ...);
-int vsnprintf(char *restrict str, size_t size, const char *restrict format, va_list args);
-int snprintf(char *restrict str, size_t size, const char *restrict format, ...);
+int vfprintf(FILE *stream, const char *restrict format, va_list args) __attribute__((format(printf, 2, 0)));
+int fprintf(FILE *restrict stream, const char *restrict format, ...) __attribute__((format(printf, 2, 3)));
+
+int vsprintf(char *restrict str, const char *restrict format, va_list args) __attribute__((format(printf, 2, 0)));
+int sprintf(char *restrict str, const char *restrict format, ...) __attribute__((format(printf, 2, 3)));
+
+int vsnprintf(char *restrict str, size_t size, const char *restrict format, va_list args) __attribute__((format(printf, 3, 0)));
+int snprintf(char *restrict str, size_t size, const char *restrict format, ...) __attribute__((format(printf, 3, 4)));

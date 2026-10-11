@@ -1,9 +1,7 @@
-#include "assert.h"
 #include "bit_hex_string.h"
-#include "multicore.h"
-#include "stdio.h"
+#include "static_assert.h"
+#include "stdio2.h"
 #include "string_helper.h"
-#include "vga_terminal.h"
 #include <stdarg.h>
 
 /*
@@ -111,17 +109,17 @@ const char *printf_type_to_str(enum PRINTF_TYPE tag)
 
 void print_info(struct PRINTF_FIELD_PROPERTIES properties)
 {
-	terminal_writestring("Type = ");
-	terminal_writestring(printf_type_to_str(properties.type));
-	terminal_writestring("\n");
+	puts("Type = ");
+	puts(printf_type_to_str(properties.type));
+	puts("\n");
 
-	terminal_writestring("Option = ");
-	terminal_writestring(printf_fmt_option_to_str(properties.option));
-	terminal_writestring("\n");
+	puts("Option = ");
+	puts(printf_fmt_option_to_str(properties.option));
+	puts("\n");
 
-	terminal_write_uint("Option num = ", properties.option_num);
-	terminal_write_uint("len = ", properties.len);
-	terminal_write_uint("pos = ", properties.pos);
+	// terminal_write_uint("Option num = ", properties.option_num);
+	// terminal_write_uint("len = ", properties.len);
+	// terminal_write_uint("pos = ", properties.pos);
 }
 
 struct PRINTF_FIELD_PROPERTIES get_single_format_properties(const char *fmt)
@@ -190,9 +188,9 @@ void set_types_and_pos(const char *fmt, struct PRINTF_FIELD_PROPERTIES *printf_a
 
 			if (percent_count == count)
 			{
-				terminal_write_uint("percent_count = ", percent_count);
-				terminal_write_uint("count = ", count);
-				abort();
+				// terminal_write_uint("percent_count = ", percent_count);
+				// terminal_write_uint("count = ", count);
+				// abort();
 			}
 
 			const char					  *this_format = &char_array[offset];
@@ -221,7 +219,7 @@ struct startAndEnd
 	uint16_t end;
 };
 
-reentrant_lock_t kprintf_lock = {.state = 0};
+// reentrant_lock_t kprintf_lock = {.state = 0};
 
 /* end not included */
 void terminal_write_offsets(const char *str, uint16_t start, uint16_t end)
@@ -232,221 +230,18 @@ void terminal_write_offsets(const char *str, uint16_t start, uint16_t end)
 	for (uint16_t i = start; i < end; i++)
 	{
 		[[gnu::unused]] char c = str[i];
-		terminal_putchar(str[i]);
+		putchar(str[i]);
 	}
-}
-
-void kprintf_argc(const uint32_t argc, const char *fmt, ...)
-{
-	// abort_msg("We don't use this one\n");
-	// return;
-
-	// If interrupt while spinlock, deadlock
-	// TODO: Disable interrupt at the start of spinlock.
-	// Renab:warn("%s");
-	uint32_t flags = irq_save();
-	reentrant_lock(&kprintf_lock);
-	// spinlock(&kprintf_lock);
-
-	uint8_t len = argc - 1;
-	// we don't count the format
-	// This represent the number of %
-
-	uint8_t len_check = count_char(fmt, '%');
-
-	if (len != len_check)
-	{
-		terminal_writestring("len check failed\n");
-		terminal_write_uint("len = ", len);
-		terminal_write_uint("len_check = ", len_check);
-		reentrant_unlock(&kprintf_lock);
-		irq_restore(flags);
-		abort();
-	}
-
-	if (len == 0)
-	{
-		terminal_writestring(fmt);
-		reentrant_unlock(&kprintf_lock);
-		irq_restore(flags);
-		return;
-	}
-
-	struct PRINTF_FIELD_PROPERTIES printf_information[len];
-	set_types_and_pos(fmt, (struct PRINTF_FIELD_PROPERTIES *)&printf_information, len);
-
-	uint16_t format_len	  = strlen(fmt);
-	uint16_t last_fmt_end = printf_information[len - 1].pos + printf_information[len - 1].len;
-	if (format_len == last_fmt_end)
-	{
-		// Then,  "abc %d %f" <- Finish with format specifier
-		// Else, "abc, %d %f\n" <- something else after
-	}
-
-	struct startAndEnd start_and_ends[argc];
-	start_and_ends[0].start = 0;
-	start_and_ends[0].end	= printf_information[0].pos - 1;
-
-	for (uint8_t i = 1; i < len; i++)
-	{
-		start_and_ends[i].start = printf_information[i - 1].pos + printf_information[i - 1].len;
-		start_and_ends[i].end	= printf_information[i].pos - 1;
-	}
-
-	if (len != 0)
-	{
-		start_and_ends[len].start = printf_information[len - 1].pos + printf_information[len - 1].len;
-		start_and_ends[len].end	  = format_len - 1;
-	}
-
-	terminal_write_offsets(fmt, start_and_ends[0].start, start_and_ends[0].end + 1);
-
-	va_list args;
-	va_start(args, fmt);
-
-	for (uint8_t i = 0; i < len; i++)
-	{
-
-		switch (printf_information[i].type)
-		{
-		case PRINTF_TAG_CHAR:
-		{
-			char arg_i = (char)va_arg(args, int); // read promoted int, cast to char
-			// terminal_writestring("char: ");
-			terminal_putchar(arg_i);
-			// terminal_writestring("\n");
-			break;
-		}
-
-		case PRINTF_TAG_STRING:
-		{
-			const char *arg_i = va_arg(args, const char *); // pointer stays pointer
-			// terminal_writestring("string: ");
-			terminal_writestring(arg_i);
-			// terminal_writestring("\n");
-			break;
-		}
-
-		case PRINTF_TAG_INT:
-		{
-			int							   arg_i	   = va_arg(args, int); // int is passed as int
-			struct PRINTF_FIELD_PROPERTIES information = printf_information[i];
-
-			if (information.option == FMT_OPTION_PAD)
-			{
-				print_int_f(arg_i, information.option_num);
-			}
-			else
-			{
-				print_int_f(arg_i, 0);
-			}
-			break;
-		}
-
-		case PRINTF_TAG_UINT32_T:
-		{
-			uint32_t					   arg_i	   = (uint32_t)va_arg(args, uint32_t); // uint32_t promoted to unsigned int
-			struct PRINTF_FIELD_PROPERTIES information = printf_information[i];
-
-			if (information.option == FMT_OPTION_PAD)
-			{
-				print_uint_f(arg_i, information.option_num);
-			}
-			else
-			{
-				print_uint_f(arg_i, 0);
-			}
-
-			break;
-		}
-
-		case PRINTF_TAG_FLOAT:
-		{
-			float						   arg_i	   = (float)va_arg(args, double); // float promoted to double
-			struct PRINTF_FIELD_PROPERTIES information = printf_information[i];
-
-			if (information.option == FMT_OPTION_PRECISION)
-			{
-				// terminal_writestring("float: ");
-				print_float_var_no_newline_precision(arg_i, information.option_num);
-				// terminal_writestring("\n");
-			}
-			else
-			{
-				// terminal_writestring("float: ");
-				print_float_var_no_newline(arg_i);
-				// terminal_writestring("\n");
-			}
-			break;
-		}
-
-		case PRINTF_TAG_HEX:
-		{
-			uint32_t					   arg_i	   = (uint32_t)va_arg(args, unsigned int); // same as UINT32_T
-			struct PRINTF_FIELD_PROPERTIES information = printf_information[i];
-			if (information.option == FMT_OPTION_PAD)
-			{
-				print_hex_f(arg_i, information.option_num);
-			}
-			else
-			{
-				print_hex_f(arg_i, 0);
-			}
-			break;
-		}
-
-		case PRINTF_TAG_BINARY:
-		{
-			uint32_t					   arg_i	   = (uint32_t)va_arg(args, uint32_t); // same as UINT32_T
-			struct PRINTF_FIELD_PROPERTIES information = printf_information[i];
-			if (information.option == FMT_OPTION_PAD)
-			{
-				// terminal_writestring("binary_padded:");
-				print_binary_var_no_newline(arg_i, information.option_num);
-				// terminal_writestring("\n");
-			}
-			else
-			{
-
-				// terminal_writestring("binary:");
-				print_binary_var_no_newline(arg_i, 0);
-				// terminal_writestring("\n");
-			}
-
-			break;
-		}
-
-		case PRINTF_TAG_INVALID:
-		default:
-		{
-			nop(); // invalid behavior
-			break;
-		}
-		}
-
-		terminal_write_offsets(fmt, start_and_ends[i + 1].start, start_and_ends[i + 1].end + 1);
-	}
-
-	va_end(args);
-
-	reentrant_unlock(&kprintf_lock);
-	irq_restore(flags);
 }
 
 void vkprintf(const char *fmt, va_list args)
 {
-#define SMP_PROT
-
-#ifdef SMP_PROT
-	uint32_t flags = irq_save();
-	reentrant_lock(&kprintf_lock);
-#endif
 	// TODO: Make sure it does lock at the start.
 	uint8_t len = count_char(fmt, '%');
 
 	if (len == 0)
 	{
-		terminal_writestring(fmt);
+		puts(fmt);
 #ifdef SMP_PROT
 		reentrant_unlock(&kprintf_lock);
 		irq_restore(flags);
@@ -483,7 +278,7 @@ void vkprintf(const char *fmt, va_list args)
 		case PRINTF_TAG_CHAR:
 		{
 			char v = (char)va_arg(args, int);
-			terminal_putchar(v);
+			putchar(v);
 			break;
 		}
 		case PRINTF_TAG_STRING:
@@ -494,11 +289,11 @@ void vkprintf(const char *fmt, va_list args)
 			{
 				// kprintf("fmt strlen\n");
 				// terminal_write_uint("The option num: ", info.option_num);
-				terminal_write(v, info.option_num);
+				// terminal_write(v, info.option_num);
 			}
 			else
 			{
-				terminal_writestring(v);
+				puts(v);
 			}
 
 			break;
@@ -566,7 +361,7 @@ void kprintf2_argc_check(uint32_t argc, const char *fmt, ...)
 {
 
 	uint8_t len = count_char(fmt, '%');
-	assert(len == argc - 1, "Len (%u) must match argc(%u)-1\n", len, argc);
+	// assert(len == argc - 1, "Len (%u) must match argc(%u)-1\n", len, argc);
 
 	va_list args;
 	va_start(args, fmt);
@@ -598,5 +393,5 @@ void test_printf2(void)
 void test_assert(void)
 {
 
-	assert(true, "the int = %d, the float = %f.5, the hex = %h:3\n", 3, 25.1, 0x4b);
+	// assert(true, "the int = %d, the float = %f.5, the hex = %h:3\n", 3, 25.1, 0x4b);
 }
