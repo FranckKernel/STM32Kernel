@@ -1,4 +1,5 @@
 #include "macros.h"
+#include "stdio.h"
 #include "string.h"
 #include "timer_frequency.h"
 #include "usart.h"
@@ -158,4 +159,28 @@ int usart_write_n(volatile usart_t *const usart, char *str, int len)
 int usart_write(volatile usart_t *const usart, char *str)
 {
 	return usart_write_n(usart, str, strlen(str));
+}
+
+void Usart2Handler()
+{
+	usart_status_t status = READ32(&usart2->status);
+	if (status.overrun_error)
+	{
+		return;
+	}
+	if (status.framing_error)
+	{
+		return;
+	}
+	if (status.parity_error)
+	{
+		return;
+	}
+
+	if (status.rxne)
+	{
+		usart_data_t data = READ32(&usart2->data);
+		char		 c	  = data.data;
+		putchar('1');
+	}
 }

@@ -118,7 +118,7 @@ $CC "${CFLAGS[@]}" -c "$TASKS/scheduler.c" -o "$BUILD_DIR"/scheduler.o "-I$TIMER
 $CC "${CFLAGS[@]}" -c "$FLASH/flash.c" -o "$BUILD_DIR"/flash.o
 $CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO" "-I$FLASH"
 
-$CC "${CFLAGS[@]}" -c "$USART/usart.c" -o "$BUILD_DIR"/usart.o "-I$COMMON" "-I$TIMERS" "-I$STDLIB"
+$CC "${CFLAGS[@]}" -c "$USART/usart.c" -o "$BUILD_DIR"/usart.o "-I$COMMON" "-I$TIMERS" "-I$STDLIB" "-I$STDIO"
 
 echo "[LD] linking..."
 
@@ -141,13 +141,19 @@ $DUMP "$BUILD_DIR/nvic.o" -D -h >"$BUILD_DIR/nvic.dump"
 $DUMP "$BUILD_DIR/$TARGET.elf" -D -h >"$BUILD_DIR/$TARGET.dump"
 
 if [[ "$RENODE_OR_REAL_MACHINE" == "real" ]]; then
+
 	echo "[RUN]: Flashing the kernel"
 	st-flash --connect-under-reset write "$BUILD_DIR/$TARGET.bin" 0x8000000
-	st-flash reset
+	# st-flash reset # It's already reset
 	if [[ "$DEBUG_OR_RELEASE" == "debug" ]]; then
 		st-util
 	else
-		picocom --baud 38400 --databits 8 --parity n --stopbits 1 /dev/ttyACM0
+		# {
+		# 	sleep 1
+		# 	st-flash reset
+		# } &
+		# picocom --baud 38400 --databits 8 --parity n --stopbits 1 --imap lfcrlf /dev/ttyACM0
+		echo ""
 	fi
 else
 	echo "[RUN]: Flashing the os in a simulated Renode"

@@ -80,9 +80,6 @@ int main(void)
 	data_section_init();
 	bss_section_init();
 
-	enable_gpio_clock(GPIOA);
-	enable_gpio_clock(GPIOB);
-
 #ifdef USE_LIBC
 
 	char array[50];
@@ -98,6 +95,11 @@ int main(void)
 #	endif
 #endif
 
+	enable_gpio_clock(GPIOA);
+	enable_gpio_clock(GPIOB);
+
+	// rcc->ahb1_enable_register.gpio_a_enable = 1;
+
 	rcc->apb1enr.usart2_enable = 1; // byte access allowed for ahb1
 
 	usart_config_t u2_config;
@@ -110,28 +112,9 @@ int main(void)
 	u2_config.oversampling_not_over8 = usart_oversampling_16;
 
 	config_usart(usart2, &u2_config);
-	while (true)
-	{
-		// puts("Configurated USART");
-		int a = usart_write(usart2, "test"); // Red
-	}
-
-	// The blue led pin
-	gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
-	gpio_output_type_setup(GPIOA, 5, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
-
-	// The button pin
-	gpio_port_mode_setup(GPIOB, 12, GPIO_PORT_MODE_INPUT);
-	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
-
-	// use GPIO A7 for pwm
-	gpio_port_mode_setup(GPIOB, 6, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
-	gpio_output_type_setup(GPIOB, 6, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
-	gpio_alternate_function_setup(GPIOB, 6, AF2); // AF2 does it so the following happen
-	// B6: Tim4 -> Channel 1
-	// B7: Tim4 -> Channel 2
-	// B8: Tim4 -> Channel 3
-	// B9: Tim4 -> Channel 4
+	configure_rcc_timers();
+	switch_to_pll(clock_frequency / 1'000'000);
+	enable_timers_rcc();
 
 	// USART2 TX pin
 	gpio_port_mode_setup(GPIOA, 2, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
@@ -151,21 +134,31 @@ int main(void)
 	// A2 -> USART2 TX
 	// A3 -> USART2 RX
 
+	puts("\n\n\n======================== START OF CONFIG ====================\n\n\n");
+
+	// The blue led pin
+	gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
+	gpio_output_type_setup(GPIOA, 5, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
+
+	// The button pin
+	gpio_port_mode_setup(GPIOB, 12, GPIO_PORT_MODE_INPUT);
+	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
+
+	// use GPIO A7 for pwm
+	gpio_port_mode_setup(GPIOB, 6, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
+	gpio_output_type_setup(GPIOB, 6, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
+	gpio_alternate_function_setup(GPIOB, 6, AF2); // AF2 does it so the following happen
+	// B6: Tim4 -> Channel 1
+	// B7: Tim4 -> Channel 2
+	// B8: Tim4 -> Channel 3
+	// B9: Tim4 -> Channel 4
+
 	// The task for timer 2.
 	task_add((task_public_t){.func = simple_task, .period_ms = 1000, .priority = 3});
 	task_add((task_public_t){.func = simple_task2, .period_ms = 1, .priority = 10});
 	task_reorder();
 	// // reorder the tasks
 
-	puts("Got here");
-
-	// nvic_trigger_irq(TIM2_IRQn);
-
-	configure_rcc_timers();
-	switch_to_pll(clock_frequency / 1'000'000);
-	enable_timers_rcc();
-
-	// Need customer values if i want something else
 	// uint16_t pwm_prescaler = timer_prescaler;
 	configure_timerPWM(TIMER4, ch1, pwm_prescaler, pwm_duty_steps); // 10 Khz pwm
 																	// set_pwm_duty(TIMER4, ch1, 1000);
@@ -177,6 +170,7 @@ int main(void)
 	nvic_enable_irq(TIM2_IRQn);
 	nvic_enable_irq(TIM3_IRQn);
 	nvic_enable_irq(TIM5_IRQn);
+	// nvic_enable_irq(USART2_IRQn);
 
 	start_timer(TIMER4);
 	start_timer(TIMER2);
@@ -191,6 +185,7 @@ int main(void)
 	// gpio_port_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_MODE_INPUT);
 	// gpio_pull_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_PULL_MODE_UP);
 
+	puts("\n\n\n================================ START OF 'UserSpace' main loop ====================\n\n\n");
 	while (1)
 	{
 		uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);

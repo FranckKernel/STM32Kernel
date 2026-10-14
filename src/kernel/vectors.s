@@ -91,7 +91,7 @@ vector_table:
     .word Default_Handler    /* 35 SPI1 */
     .word Default_Handler    /* 36 SPI2 */
     .word Default_Handler    /* 37 USART1 */
-    .word Default_Handler    /* 38 USART2 */
+    .word Usart2Handler    /* 38 USART2 */
     .word 0                  /* 39 Reserved */
     .word Default_Handler    /* 40 EXTI15_10 */
     .word Default_Handler    /* 41 RTC_Alarm */
