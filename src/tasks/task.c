@@ -79,11 +79,15 @@ void task_reorder()
 void simple_task()
 {
 	// do something
-	puts("Hello\n");
+	// puts("Hello\n");
 }
 
 void simple_task2()
 {
 	// gpio_write(GPIOA, 5, 1);
 	// do something
+}
+
+void usart_command_task()
+{
 }

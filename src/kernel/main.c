@@ -73,6 +73,9 @@ void bss_section_init(void)
 
 // extern that shit so it's available someplace elses
 
+__attribute__((noinline)) void read_usart_status();
+__attribute__((noinline)) void poll_usart();
+
 int main(void)
 {
 
@@ -102,10 +105,11 @@ int main(void)
 
 	rcc->apb1enr.usart2_enable = 1; // byte access allowed for ahb1
 
-	usart_config_t u2_config;
-	u2_config.baudrate				 = usart_baudrate_38400;
-	u2_config.word_length			 = usart_word_lengths_8bits;
-	u2_config.stop_bit				 = 1;
+	usart_config_t u2_config = {0};
+	u2_config.baudrate		 = usart_baudrate_38400;
+	u2_config.word_length	 = usart_word_lengths_8bits;
+	u2_config.stop_bit		 = usart_stop_bits_pub_1;
+	// u2_config.stop_bit				 = 1;
 	u2_config.parity				 = usart_parity_none;
 	u2_config.mode					 = usart_mode_both;
 	u2_config.hardware_control		 = usart_hwc_none;
@@ -137,14 +141,17 @@ int main(void)
 	puts("\n\n\n======================== START OF CONFIG ====================\n\n\n");
 
 	// The blue led pin
+	puts("Configuring GPIO A5 as output (The blue LED)\n");
 	gpio_port_mode_setup(GPIOA, 5, GPIO_PORT_MODE_OUTPUT);
 	gpio_output_type_setup(GPIOA, 5, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
 
 	// The button pin
+	puts("Configuring GPIO B12 as input (the button)\n");
 	gpio_port_mode_setup(GPIOB, 12, GPIO_PORT_MODE_INPUT);
 	gpio_pull_mode_setup(GPIOB, 12, GPIO_PORT_PULL_MODE_UP);
 
 	// use GPIO A7 for pwm
+	puts("Configuring GPIO B6 as Alternate Function AF2 : Timer 4 Channel 1 (for pwm)\n");
 	gpio_port_mode_setup(GPIOB, 6, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
 	gpio_output_type_setup(GPIOB, 6, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
 	gpio_alternate_function_setup(GPIOB, 6, AF2); // AF2 does it so the following happen
@@ -154,24 +161,30 @@ int main(void)
 	// B9: Tim4 -> Channel 4
 
 	// The task for timer 2.
+	puts("Adding the task runned by the scheduler\n");
 	task_add((task_public_t){.func = simple_task, .period_ms = 1000, .priority = 3});
 	task_add((task_public_t){.func = simple_task2, .period_ms = 1, .priority = 10});
 	task_reorder();
 	// // reorder the tasks
 
 	// uint16_t pwm_prescaler = timer_prescaler;
+	puts("Configuring the timer 4 channel 1 for PWM at 10Khz with precision 1/800\n");
 	configure_timerPWM(TIMER4, ch1, pwm_prescaler, pwm_duty_steps); // 10 Khz pwm
 																	// set_pwm_duty(TIMER4, ch1, 1000);
 
+	puts("Configuring timer 2 (scheduler), timer 3 (The led light changer)\n");
 	configure_timer32(TIMER2, timer_prescaler, get_timer_max_counter(scheduler_frequency)); // 1 Mhz / 100 = 10 Khz
 	configure_timer16(TIMER3, timer_prescaler, get_timer_max_counter(1'000));				// 1 Khz
 	configure_timer32(TIMER5, timer_prescaler, get_timer_max_counter(2));					// 2 Hz
 
+	puts("Enabling the IRQs\n");
 	nvic_enable_irq(TIM2_IRQn);
 	nvic_enable_irq(TIM3_IRQn);
 	nvic_enable_irq(TIM5_IRQn);
-	// nvic_enable_irq(USART2_IRQn);
+	puts("Enabling USART 2 IRQ\n");
+	nvic_enable_irq(USART2_IRQn);
 
+	puts("Starting the timers\n");
 	start_timer(TIMER4);
 	start_timer(TIMER2);
 	start_timer(TIMER3);
@@ -185,6 +198,8 @@ int main(void)
 	// gpio_port_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_MODE_INPUT);
 	// gpio_pull_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_PULL_MODE_UP);
 
+	read_usart_status();
+
 	puts("\n\n\n================================ START OF 'UserSpace' main loop ====================\n\n\n");
 	while (1)
 	{
@@ -195,5 +210,38 @@ int main(void)
 		// wait_seconds(1);
 
 		// nvic_trigger_irq(TIM5_IRQn);
+
+		// poll_usart();
 	}
+}
+
+void poll_usart()
+{
+
+	usart_status_t status = READ32(&usart2->status);
+	if (status.rxne)
+	{
+		usart_data_t data = READ32(&usart2->data);
+		char		 c	  = data.data;
+		putchar(c);
+	}
+}
+
+/*
+This function serves to test READ and WRITE 32
+*/
+void read_usart_status(void)
+{
+#define MACRO_TESTER 3 // better at file scope, above the function
+
+#if MACRO_TESTER == 1
+	usart_status_t status = READ32(&usart2->status);
+	(void)status;
+#elif MACRO_TESTER == 2
+	usart_data_t data = {0};
+	data.data		  = 0xff;
+	WRITE32(&usart2->data, data);
+#elif MACRO_TESTER == 3
+	FORCE_WRITE32(&usart2->data, (uint32_t)0xff);
+#endif
 }

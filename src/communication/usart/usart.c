@@ -5,10 +5,9 @@
 #include "usart.h"
 #include <math.h>
 
-volatile usart_t *const usart2 = (volatile usart_t *const)USART2_BASE;
-
-volatile usart_t *const usart1 = (volatile usart_t *const)USART1_BASE;
-volatile usart_t *const usart6 = (volatile usart_t *const)USART6_BASE;
+// volatile usart_t *const usart2 = (volatile usart_t *const)USART2_BASE;
+// volatile usart_t *const usart1 = (volatile usart_t *const)USART1_BASE;
+// volatile usart_t *const usart6 = (volatile usart_t *const)USART6_BASE;
 
 void config_usart(volatile usart_t *const usart, const usart_config_t *const config)
 {
@@ -46,7 +45,7 @@ void config_usart(volatile usart_t *const usart, const usart_config_t *const con
 	usart_cr2_t cr2_temp = READ32(&usart->cr2);
 	usart_cr3_t cr3_temp = READ32(&usart->cr3);
 
-	cr2_temp.stop_bits = config->stop_bit;
+	cr2_temp.stop_bits = (enum usart_stop_bits)config->stop_bit;
 	if (config->clock_info.clock_enable)
 	{
 		cr2_temp.clock_enable = config->clock_info.clock_enable;
@@ -111,9 +110,9 @@ void config_usart(volatile usart_t *const usart, const usart_config_t *const con
 		break;
 	}
 	}
-	WRITE32(&usart2->cr1, cr1_temp);
-	WRITE32(&usart2->cr2, cr2_temp);
-	WRITE32(&usart2->cr3, cr3_temp);
+	WRITE32(&usart->cr1, cr1_temp);
+	WRITE32(&usart->cr2, cr2_temp);
+	WRITE32(&usart->cr3, cr3_temp);
 }
 
 uint32_t get_system_tick();
@@ -130,7 +129,9 @@ bool usart_write_u8(volatile usart_t *const usart, uint8_t value)
 		// What if there's data in the reader? (Heard its fine and not gonna happen)
 		// For now, i'm leaving 2 scheduler tick, which is horrible.
 		// But what if it schedules mid function.
-		if (get_system_tick() - system_tick >= 1000000)
+
+		uint32_t new_st = get_system_tick();
+		if (new_st - system_tick >= 1000000)
 		{
 			// With this check, if the scheduler is called twice while this runs
 			// We leave early, something bad happened
@@ -181,6 +182,12 @@ void Usart2Handler()
 	{
 		usart_data_t data = READ32(&usart2->data);
 		char		 c	  = data.data;
-		putchar('1');
+		putchar(c);
+
+		// Enter is \r
+		if (c == '\r')
+		{
+			puts("\nPressed enter\n");
+		}
 	}
 }

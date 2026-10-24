@@ -19,6 +19,7 @@ static const uintptr_t USART6_BASE = 0x4001'1400;
 typedef struct
 {
 	uint32_t data : 9; // bit 0-8, (rw). Reading get from pc, writting send to pc. 9 bit long
+					   // uint32_t parity : 1;
 					   // If using parity, and Length = 9, the 9th bit is parity bit. Write to the parity bit are not cared about
 					   // Franck pro tip: Use length = 9 when parity, and l = 8 when no parity
 
@@ -149,3 +150,9 @@ typedef struct usart
 } usart_t;
 
 // =================================== The functions
+
+// =================================== The members
+
+static volatile usart_t *const usart2 = (volatile usart_t *)USART2_BASE;
+static volatile usart_t *const usart1 = (volatile usart_t *)USART1_BASE;
+static volatile usart_t *const usart6 = (volatile usart_t *)USART6_BASE;

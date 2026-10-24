@@ -29,6 +29,9 @@ CC=arm-none-eabi-gcc
 DUMP=arm-none-eabi-objdump
 OBJCOPY=arm-none-eabi-objcopy
 
+# CC=x86_64-elf-gcc
+# DUMP=x86_64-elf-objdump
+
 DEBUG_OR_RELEASE="${1:-release}"
 RENODE_OR_REAL_MACHINE="${2:-real}"
 
@@ -105,7 +108,7 @@ $CC "${CFLAGS[@]}" -c kernel/vectors.s -o "$BUILD_DIR"/vectors.o
 $CC "${CFLAGS[@]}" -c kernel/isr_default.s -o "$BUILD_DIR"/isr_default.o
 $CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS" "-I$FLASH" "-I$USART" "-I$STDIO"
 
-$CC "${CFLAGS[@]}" -c "$STDLIB/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO" "-I$USART"
+$CC "${CFLAGS[@]}" -c "$STDLIB/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO" "-I$USART" "-I$COMMON"
 $CC "${CFLAGS[@]}" -c "$STDLIB/string.c" -o "$BUILD_DIR"/string.o
 $CC "${CFLAGS[@]}" -c "$STDIO/stdio.c" -o "$BUILD_DIR"/stdio.o "-I$STDLIB"
 
@@ -139,6 +142,7 @@ $OBJCOPY \
 
 $DUMP "$BUILD_DIR/nvic.o" -D -h >"$BUILD_DIR/nvic.dump"
 $DUMP "$BUILD_DIR/$TARGET.elf" -D -h >"$BUILD_DIR/$TARGET.dump"
+$DUMP "$BUILD_DIR/usart.o" -D -h >"$BUILD_DIR/usart.dump"
 
 if [[ "$RENODE_OR_REAL_MACHINE" == "real" ]]; then
 

@@ -49,11 +49,19 @@ enum usart_oversampling
 	usart_oversampling_8  = 0b1,
 };
 
+enum usart_stop_bits_pub
+{
+	usart_stop_bits_pub_1  = 0b00,
+	usart_stop_bits_pub_05 = 0b01,
+	usart_stop_bits_pub_2  = 0b10,
+
+};
+
 typedef struct
 {
 	enum usart_baudrate			baudrate;
 	enum usart_word_length		word_length;
-	bool						stop_bit;
+	enum usart_stop_bits_pub	stop_bit;
 	enum usart_parity			parity;
 	enum usart_mode				mode;
 	enum usart_hardware_control hardware_control;
@@ -69,9 +77,7 @@ typedef struct
 
 typedef struct usart usart_t;
 
-extern volatile usart_t *const usart2; // In APB1
-extern volatile usart_t *const usart1; // In AHB2
-extern volatile usart_t *const usart6; // In AHB2
+// usart.h
 
 void config_usart(volatile usart_t *const usart, const usart_config_t *const config);
 // bool usart_write_u8(volatile usart_t *const usart, uint8_t value);

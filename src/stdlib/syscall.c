@@ -1,4 +1,4 @@
-#include "usart_public.h"
+#include "usart.h"
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
