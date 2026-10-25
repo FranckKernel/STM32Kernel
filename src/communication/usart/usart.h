@@ -98,7 +98,7 @@ enum usart_stop_bits
 
 typedef struct
 {
-	uint32_t address : 3;			   // bit 0-3
+	uint32_t address : 4;			   // bit 0-3
 	uint32_t _reserved1 : 1;		   // bit 4
 	uint32_t line_break_detection : 1; // bit 5 (10 bit break = 0, 11 bit break = 1)
 	uint32_t lbd_interrupt_enable : 1; // bit 6
@@ -153,6 +153,10 @@ typedef struct usart
 
 // =================================== The members
 
-static volatile usart_t *const usart2 = (volatile usart_t *)USART2_BASE;
-static volatile usart_t *const usart1 = (volatile usart_t *)USART1_BASE;
-static volatile usart_t *const usart6 = (volatile usart_t *)USART6_BASE;
+// static volatile usart_t *const usart2 = (volatile usart_t *)USART2_BASE;
+// static volatile usart_t *const usart1 = (volatile usart_t *)USART1_BASE;
+// static volatile usart_t *const usart6 = (volatile usart_t *)USART6_BASE;
+
+extern volatile usart_t *const usart2;
+extern volatile usart_t *const usart1;
+extern volatile usart_t *const usart6;

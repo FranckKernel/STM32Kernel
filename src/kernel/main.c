@@ -74,7 +74,7 @@ void bss_section_init(void)
 
 // extern that shit so it's available someplace elses
 
-__attribute__((noinline)) void read_usart_status();
+__attribute__((noinline)) void usart2_rw_macro_test();
 __attribute__((noinline)) void poll_usart();
 void						   zig_main();
 
@@ -206,7 +206,7 @@ int main(void)
 	// gpio_port_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_MODE_INPUT);
 	// gpio_pull_mode_setup(INPUT_LETTER, INPUT_PIN, GPIO_PORT_PULL_MODE_UP);
 
-	read_usart_status();
+	usart2_rw_macro_test();
 
 	puts("\n\n==== Start of userspace====\n\n");
 	int r = puts("\n\n\n================================ START OF 'UserSpace' main loop ====================\n\n\n");
@@ -241,9 +241,9 @@ void poll_usart()
 /*
 This function serves to test READ and WRITE 32
 */
-void read_usart_status(void)
+void usart2_rw_macro_test(void)
 {
-#define MACRO_TESTER 3 // better at file scope, above the function
+#define MACRO_TESTER 2 // better at file scope, above the function
 
 #if MACRO_TESTER == 1
 	usart_status_t status = READ32(&usart2->status);

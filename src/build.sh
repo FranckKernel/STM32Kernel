@@ -92,7 +92,7 @@ CFLAGS=(
 	"-O3"
 	"-ffunction-sections"
 	"-fdata-sections"
-	# "-flto"
+	"-flto"
 
 	"-Wall"
 	"-Wextra"
@@ -213,6 +213,7 @@ $OBJCOPY \
 $DUMP "$BUILD_DIR/nvic.o" -D -h >"$BUILD_DIR/nvic.dump"
 $DUMP "$BUILD_DIR/$TARGET.elf" -D -h >"$BUILD_DIR/$TARGET.dump"
 $DUMP "$BUILD_DIR/usart.o" -D -h >"$BUILD_DIR/usart.dump"
+$DUMP "$BUILD_DIR/main.o" -D -h >"$BUILD_DIR/main.dump"
 
 if [[ "$RENODE_OR_REAL_MACHINE" == "real" ]]; then
 

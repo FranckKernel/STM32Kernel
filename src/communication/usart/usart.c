@@ -5,9 +5,9 @@
 #include "usart.h"
 #include <math.h>
 
-// volatile usart_t *const usart2 = (volatile usart_t *const)USART2_BASE;
-// volatile usart_t *const usart1 = (volatile usart_t *const)USART1_BASE;
-// volatile usart_t *const usart6 = (volatile usart_t *const)USART6_BASE;
+volatile usart_t *const usart2 = (volatile usart_t *const)USART2_BASE;
+volatile usart_t *const usart1 = (volatile usart_t *const)USART1_BASE;
+volatile usart_t *const usart6 = (volatile usart_t *const)USART6_BASE;
 
 void config_usart(volatile usart_t *const usart, const usart_config_t *const config)
 {

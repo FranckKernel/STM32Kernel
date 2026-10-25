@@ -33,6 +33,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const usart_module = b.createModule(.{
+        .root_source_file = b.path("communication/usart/usart.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const macros_module = b.createModule(.{
         .root_source_file = b.path("common/macros.zig"),
         .target = target,
@@ -53,7 +59,7 @@ pub fn build(b: *std.Build) void {
 
     // ======================= The The full thing
 
-    const entire_kernel_module = b.createModule(.{
+    const main_module = b.createModule(.{
         .root_source_file = b.path("kernel/usermain.zig"), // Source file
         .target = target,
         .optimize = optimize,
@@ -66,16 +72,19 @@ pub fn build(b: *std.Build) void {
     // Create the kernel library (static archive)
     const kernel_lib = b.addLibrary(.{
         .name = "kernel",
-        .root_module = entire_kernel_module,
+        .root_module = main_module,
         .linkage = .static,
     });
 
     // Add the modules
-    entire_kernel_module.addImport("gpio", gpio_module);
-    entire_kernel_module.addImport("stdio", stdio_module);
-    entire_kernel_module.addImport("std_options", std_options_module);
-    entire_kernel_module.addImport("macros", macros_module);
+    main_module.addImport("gpio", gpio_module);
+    main_module.addImport("stdio", stdio_module);
+    main_module.addImport("std_options", std_options_module);
+    main_module.addImport("macros", macros_module);
+    main_module.addImport("usart", usart_module);
     std_options_module.addImport("stdio", stdio_module);
+    usart_module.addImport("macros", macros_module);
+    stdio_module.addImport("usart", usart_module);
     gpio_module.addImport("macros", macros_module);
 
     // kernel_lib.root_module.red_zone = false;
