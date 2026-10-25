@@ -87,7 +87,7 @@ pub const GpioPortPullMode = enum(u2) {
     down = 0b10,
 };
 
-const GpioPortPullModeRegister = packed struct {
+const GpioPortPullModeRegister = packed struct(u32) {
     pin: [16]GpioPortPullMode,
 };
 

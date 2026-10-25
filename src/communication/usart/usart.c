@@ -22,7 +22,7 @@ void config_usart(volatile usart_t *const usart, const usart_config_t *const con
 
 	// Figure out the divider. 32 bit, 23 bit mantissa, 24 bit of integer precision.
 	// 2^24 = 16 million. Slower then PLL reachable clock speed
-	double clock_frequency_f = clock_frequency / 2.f;
+	double clock_frequency_f = clock_frequency / 2.0;
 
 	uint8_t oversampling = config->oversampling_not_over8 ? 8 : 16;
 
@@ -71,6 +71,7 @@ void config_usart(volatile usart_t *const usart, const usart_config_t *const con
 		cr1_temp.parity_selection_odd_not_even = 1;
 		cr1_temp.parity_error_interrupt_enable = 1;
 		cr3_temp.error_interrupt_enable		   = 1;
+		break;
 	}
 	case (usart_parity_even):
 	{

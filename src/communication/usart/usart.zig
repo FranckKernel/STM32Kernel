@@ -16,7 +16,7 @@ const USART6_BASE: u32 = 0x4001_1400;
 
 // ================================ USART Data Register (DR)
 
-const UsartData = packed struct {
+const UsartData = packed struct(u32) {
     data: u9,
     _reserved: u23 = 0,
 };
@@ -29,7 +29,7 @@ const usartDataCheck = {
 // ================================== USART Baud Rate Register (BRR)
 // Usart Divider = DIV_Mantissa +  { DIV_Fraction / [8 × (2 – OVER8)] }
 // With 96Mhz, we need Divider = 2500
-const UsartBRR = packed struct {
+const UsartBRR = packed struct(u32) {
     div_fraction: u4 = 0,
     div_mantissa: u12 = 0,
     // It's fixed signed representation. mantissa = whole number
@@ -43,7 +43,7 @@ comptime {
 }
 
 // =================================== USART Status Register (SR)
-const UsartStatus = packed struct {
+const UsartStatus = packed struct(u32) {
     parity_error: bool = false, // Set by hardware. Cleared by software by r/w DR after RXNE set. (need to poll rxne, or interrupt rxne)
     framing_error: bool = false, // r only
     noise_detected_flag: bool = false, // r only
@@ -79,7 +79,7 @@ pub const UsartOversampling = enum(u1) {
     @"8" = 0b1,
 };
 
-const UsartCR1 = packed struct {
+const UsartCR1 = packed struct(u32) {
     send_break: bool = false, // bit 0
     recieved_wakeup: bool = false, // bit 1
     reciever_enable: bool = false, // bit 2
@@ -118,7 +118,7 @@ pub const UsartStopBits = enum(u2) {
     @"2" = 0b10,
 };
 
-const UsartCR2 = packed struct {
+const UsartCR2 = packed struct(u32) {
     address: u4 = 0, // bit 0-3
     _reserved1: u1 = 0, // bit 4
     line_break_detection: bool = false, // bit 5 (10 bit break = 0, 11 bit break = 1)
@@ -144,7 +144,7 @@ comptime {
 
 // ================================== USART Control Register 3 (CR3)
 
-const UsartCR3 = packed struct {
+const UsartCR3 = packed struct(u32) {
     error_interrupt_enable: bool = false,
     irda_mode_enable: bool = false,
     irda_low_power: bool = false,
@@ -168,7 +168,9 @@ comptime {
 }
 
 // ===================================== The META Struct
-pub const Usart = packed struct {
+// The meta struct CANNOT be packed struct, else some weird shit happen
+// Normal
+pub const Usart = extern struct {
     status: UsartStatus,
     data: UsartData,
     brr: UsartBRR,
@@ -177,6 +179,16 @@ pub const Usart = packed struct {
     cr3: UsartCR3,
     gtpr: u32,
 };
+
+comptime {
+    std.debug.assert(@offsetOf(Usart, "status") == 0x00);
+    std.debug.assert(@offsetOf(Usart, "data") == 0x04);
+    std.debug.assert(@offsetOf(Usart, "brr") == 0x08);
+    std.debug.assert(@offsetOf(Usart, "cr1") == 0x0C);
+    std.debug.assert(@offsetOf(Usart, "cr2") == 0x10);
+    std.debug.assert(@offsetOf(Usart, "cr3") == 0x14);
+    std.debug.assert(@offsetOf(Usart, "gtpr") == 0x18);
+}
 
 // ================================= The assignments
 pub const usart2: *volatile Usart = @ptrFromInt(USART2_BASE);
@@ -230,11 +242,6 @@ const UsartConfig = struct {
 };
 
 // ================================ The functions
-pub fn f() void {
-    const a: UsartData = usart2.data;
-    _ = a.data;
-    //
-}
 
 pub fn config_usart(usart: *volatile Usart, config: *const UsartConfig) void {
     //
@@ -244,6 +251,14 @@ pub fn config_usart(usart: *volatile Usart, config: *const UsartConfig) void {
 }
 
 extern fn get_system_tick() i32;
+
+const sr: *volatile u32 = @ptrFromInt(0x4000_4400);
+const dr: *volatile u32 = @ptrFromInt(0x4000_4404);
+
+pub fn write_u8_raw(value: u8) void {
+    while (sr.* & (1 << 7) == 0) {} // wait for TXE
+    dr.* = value;
+}
 
 const max_system_tick_diff: u32 = 100000;
 
@@ -263,6 +278,20 @@ pub fn write_u8(usart: *volatile Usart, value: u8) bool {
     const data_write: UsartData = .{ .data = value };
 
     macros.write32(&usart.data, data_write);
+    return false;
+}
+
+pub noinline fn write_u8_nocheck(usart: *volatile Usart, value: u8) bool {
+    //
+    // while (!read32(&usart.status).transmit_data_register_empty) {
+    //     // -
+    //     asm volatile ("nop");
+    // }
+
+    // const data_write: UsartData = .{ .data = value };
+
+    // macros.write32(&usart.data, data_write);
+    macros.forceWrite32(&usart.data, value);
     return false;
 }
 
