@@ -274,3 +274,16 @@ pub fn setLD2(level: GpioOutputData) void {
     // change the state of the second LED
     gpioWrite(.a, 5, level);
 }
+
+pub const GpioLetter = enum(u8) {
+    GPIOA = 0,
+    GPIOB, // 1
+    GPIOC, // 2
+    GPIOD, // 3
+    GPIOE, // 4
+
+    GPIOF, // 5 they are reserved
+    GPIOG, // 6
+
+    GPIOH, // 7
+};

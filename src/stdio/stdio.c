@@ -114,6 +114,12 @@ int snprintf(char *restrict str, size_t size, const char *restrict format, ...)
 }
 
 // ================= Need to implement vsnprintf and vsprintf bellow!
+
+int vsprintf(char *restrict str, const char *restrict format, va_list args)
+{
+	return 0;
+}
+
 int vsnprintf(char *restrict str, size_t size, const char *restrict format, va_list args)
 {
 

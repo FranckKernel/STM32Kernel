@@ -1,4 +1,5 @@
 #include "clock.h"
+#include "fpu.h"
 #include "gpio.h"
 #include "interrupt_vectors.h"
 #include "intrinsics.h"
@@ -75,6 +76,7 @@ void bss_section_init(void)
 
 __attribute__((noinline)) void read_usart_status();
 __attribute__((noinline)) void poll_usart();
+void						   zig_main();
 
 int main(void)
 {
@@ -82,6 +84,8 @@ int main(void)
 	// Copy data from flash to ram
 	data_section_init();
 	bss_section_init();
+
+	fpu_enable();
 
 #ifdef USE_LIBC
 
@@ -201,6 +205,8 @@ int main(void)
 	read_usart_status();
 
 	puts("\n\n\n================================ START OF 'UserSpace' main loop ====================\n\n\n");
+	volatile double x = get_time_s();
+	zig_main();
 	while (1)
 	{
 		uint8_t button = !gpio_read(INPUT_LETTER, INPUT_PIN);

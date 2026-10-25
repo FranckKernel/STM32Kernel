@@ -1,6 +1,7 @@
 *.o
-.ccls-cache/
-src/.ccls-cache/
+**/.ccls-cache/
+**/.zig-cache/
+**/zig-out
 src/build/
 Board Docs/Mastering STM32 Second edition.pdf_filter_repo_prevent
 

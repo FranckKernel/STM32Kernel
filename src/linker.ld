@@ -40,7 +40,8 @@ SECTIONS
 		. = ALIGN(4);
 		*(.rodata)
 		*(.rodata*)
-		. = ALIGN(4);
+
+
 	} >FLASH
 
 

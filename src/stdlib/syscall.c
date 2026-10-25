@@ -140,7 +140,7 @@ int _kill(int pid, int sig)
 	(void)pid;
 	(void)sig;
 
-	errno = EINVAL;
+	// errno = EINVAL;
 	return -1;
 }
 

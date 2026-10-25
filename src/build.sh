@@ -23,6 +23,14 @@ cd "$src" || { # Tries to cd to "src" relative to current dir
 	exit 1
 }
 
+print_array() {
+	printf -- "\n\n%s:\n" "$2"
+	local -n arr_ref=$1 # Use nameref to pass array by name
+	for elem in "${arr_ref[@]}"; do
+		echo "$elem"
+	done
+}
+
 TARGET=kernel
 
 CC=arm-none-eabi-gcc
@@ -35,18 +43,36 @@ OBJCOPY=arm-none-eabi-objcopy
 DEBUG_OR_RELEASE="${1:-release}"
 RENODE_OR_REAL_MACHINE="${2:-real}"
 
+ZIG_RELEASE_FLAG=()
+############ Pick one of the 3:##################
+ZIG_RELEASE_MODE="fast"
+# ZIG_RELEASE_MODE="safe"
+# ZIG_RELEASE_MODE="small"
+#################################################
+
+if [[ "$DEBUG_OR_RELEASE" == "debug" ]]; then
+	ZIG_RELEASE_FLAG+=("--release=off") # debug is default
+else
+	ZIG_RELEASE_FLAG+=("--release=$ZIG_RELEASE_MODE")
+
+fi
+
 # ============= DIRECTORIES
 BUILD_DIR="./build"
+LIB_OUT_DIR="zig-out/lib"
+ZIG_LIB_NAME="kernel"
 
 GPIO="./gpio"
 STDIO="./stdio"
 STDLIB="./stdlib"
 COMMON="./common"
-CPU="./cpu"
 TIMERS="./timers"
 FLASH="./flash"
 TASKS="./tasks"
 RCC="./rcc"
+
+CPU="./cpu"
+FPU="./cpu/fpu"
 NVIC="./cpu/nvic"
 
 USART="./communication/usart"
@@ -57,6 +83,8 @@ USE_LIBC="false" # "true" or "false"
 CFLAGS=(
 	"-mcpu=cortex-m4"
 	"-mthumb"
+	"-mfloat-abi=hard"  # matches Zig's eabihf
+	"-mfpu=fpv4-sp-d16" # F446 FPU: single precision only
 	"-ffreestanding"
 	"-fno-builtin"
 	"-g"
@@ -65,6 +93,11 @@ CFLAGS=(
 	"-ffunction-sections"
 	"-fdata-sections"
 	# "-flto"
+
+	"-Wall"
+	"-Wextra"
+	"-Wdouble-promotion"          # warns when float silently becomes double (software-emulated)
+	"-fsingle-precision-constant" # 1.5 is float, not double
 )
 
 LDFLAGS=(
@@ -106,13 +139,13 @@ echo "[CC] compiling..."
 $CC "${CFLAGS[@]}" -c kernel/startup.s -o "$BUILD_DIR"/startup.o
 $CC "${CFLAGS[@]}" -c kernel/vectors.s -o "$BUILD_DIR"/vectors.o
 $CC "${CFLAGS[@]}" -c kernel/isr_default.s -o "$BUILD_DIR"/isr_default.o
-$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS" "-I$FLASH" "-I$USART" "-I$STDIO"
 
 $CC "${CFLAGS[@]}" -c "$STDLIB/syscall.c" -o "$BUILD_DIR"/syscall.o "-I$GPIO" "-I$USART" "-I$COMMON"
 $CC "${CFLAGS[@]}" -c "$STDLIB/string.c" -o "$BUILD_DIR"/string.o
 $CC "${CFLAGS[@]}" -c "$STDIO/stdio.c" -o "$BUILD_DIR"/stdio.o "-I$STDLIB"
 
 $CC "${CFLAGS[@]}" -c "./cpu/nvic/nvic.c" -o "$BUILD_DIR"/nvic.o "-I$COMMON"
+$CC "${CFLAGS[@]}" -c "$FPU/fpu.c" -o "$BUILD_DIR"/fpu.o "-I$COMMON"
 
 $CC "${CFLAGS[@]}" -c "$GPIO/gpio.c" -o "$BUILD_DIR"/gpio.o
 $CC "${CFLAGS[@]}" -c "$TIMERS/timer.c" -o "$BUILD_DIR"/timer.o
@@ -123,15 +156,52 @@ $CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO" "-I$FLASH
 
 $CC "${CFLAGS[@]}" -c "$USART/usart.c" -o "$BUILD_DIR"/usart.o "-I$COMMON" "-I$TIMERS" "-I$STDLIB" "-I$STDIO"
 
+$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS" "-I$FLASH" "-I$USART" "-I$STDIO" "-I$FPU"
+
+# ================ Zig work =================
+zig build "${ZIG_RELEASE_FLAG[@]}" --verbose
+
+LIBRARY_PATHS=(
+	# "$BUILD_DIR"
+	"$LIB_OUT_DIR"
+)
+
+LIBRARY_FILES=(
+	"$ZIG_LIB_NAME" # don't put the lib or the
+	# "libother.a"
+)
+
+LIBRARY_ARGS=()
+for path in "${LIBRARY_PATHS[@]}"; do
+	LIBRARY_ARGS+=("-L$path")
+done
+
+for lib in "${LIBRARY_FILES[@]}"; do
+	LIBRARY_ARGS+=("-l$lib")
+done
+
+print_array LIBRARY_ARGS "LIBRARY_ARGS"
+
+# ================ Linking work =================
 echo "[LD] linking..."
 
 objects=("$BUILD_DIR"/*.o)
 
 $CC "${CFLAGS[@]}" \
 	"${objects[@]}" \
+	"${LIBRARY_ARGS[@]}" \
 	"${LDFLAGS[@]}" \
 	-T "./linker.ld" \
 	-o "$BUILD_DIR/$TARGET.elf"
+
+LIBRARY_PATHS=(
+	"$LIB_OUT_DIR"
+)
+
+LIBRARY_FILES=(
+	"$ZIG_LIB_NAME" # don't put the lib or the
+	# "libother.a"
+)
 
 echo "[BIN] generating binary..."
 
