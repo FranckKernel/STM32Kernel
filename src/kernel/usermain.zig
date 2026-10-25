@@ -1,7 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const std_options = @import("std_options"); // My own thing
-const usart = @import("usart");
+// const usart = @import("usart");
 
 const macros = @import("macros");
 const gpio = @import("gpio");
@@ -24,7 +24,7 @@ export fn zig_main() noreturn {
         // @panic("Panic works\n");
     }
     // _ = macros.forceWrite32(usart.usart2.data, 0);
-    _ = usart.write_u8(usart.usart2, 0);
+    // _ = usart.write_u8(usart.usart2, 0);
     while (true) {
         // main loop
         // _ = stdio.write("How are you?");
