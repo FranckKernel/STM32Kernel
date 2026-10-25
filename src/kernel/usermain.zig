@@ -20,6 +20,8 @@ export fn zig_main() noreturn {
 
     vprint("\n\n===Welcome to zig ====\n\n", .{});
 
+    // _ = usart.usart2_write_background("Writting in the background!\n");
+
     if (true) {
         // @panic("Panic works\n");
     }

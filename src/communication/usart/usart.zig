@@ -198,31 +198,31 @@ pub const usart6: *volatile Usart = @ptrFromInt(USART6_BASE);
 // ================================ The public config struct :
 
 pub const UsartBaudrate = enum(u32) {
-    usart_baudrate_2400 = 2400,
-    usart_baudrate_9600 = 9600,
-    usart_baudrate_38400 = 38400,
-    usart_baudrate_57600 = 57600,
-    usart_baudrate_115200 = 115200,
-    usart_baudrate_230400 = 230400,
+    baudrate_2400 = 2400,
+    baudrate_9600 = 9600,
+    baudrate_38400 = 38400,
+    baudrate_57600 = 57600,
+    baudrate_115200 = 115200,
+    baudrate_230400 = 230400,
 };
 
 pub const UsartParity = enum(u8) {
-    usart_parity_none = 0,
-    usart_parity_odd = 1,
-    usart_parity_even = 2,
+    none = 0,
+    odd = 1,
+    even = 2,
 };
 
 pub const UsartMode = enum(u8) {
-    usart_mode_both = 0,
-    usart_mode_transmitter,
-    usart_mode_reciever,
+    both = 0,
+    transmitter,
+    reciever,
 };
 
 pub const UsartHardwareControl = enum(u8) {
-    usart_hwc_none,
-    usart_hwc_rts,
-    usart_hwc_cts,
-    usart_hwc_rts_cts,
+    none,
+    rts,
+    cts,
+    both,
 };
 
 const UsartConfig = struct {
@@ -243,11 +243,85 @@ const UsartConfig = struct {
 
 // ================================ The functions
 
+const clock_frequency: u32 = 96 * 1000 * 1000;
+const timer_prescaler: u32 = clock_frequency / 1000_000;
+
 pub fn config_usart(usart: *volatile Usart, config: *const UsartConfig) void {
     //
 
-    _ = config;
-    _ = usart;
+    const clock_frequency_f: f64 = clock_frequency / 2.0;
+    const oversampling: u8 = if (config.oversampling_not_over8) 8 else 16;
+
+    var divider: f64 = clock_frequency_f / @as(f64, config.baudrate);
+    divider /= @as(f64, oversampling);
+    const divider_fraction: f64 = divider - @as(u32, divider);
+
+    const div: u16 = @as(u16, divider);
+    const fraction_diviser: u8 = @as(u8, (@as(f64, oversampling) * divider_fraction));
+
+    const temp_brr: UsartBRR = .{ .div_mantissa = div, .div_fraction = fraction_diviser };
+
+    // In fixed signed representation
+    write32(&usart.brr, temp_brr);
+
+    // Writting to CR
+    const cr1_temp: UsartCR1 = read32(&usart.cr1);
+    const cr2_temp: UsartCR2 = read32(&usart.cr2);
+    const cr3_temp: UsartCR3 = read32(&usart.cr3);
+
+    cr2_temp.stop_bits = config.stop_bit;
+
+    if (config.clock_info.clock_enable) {
+        cr2_temp.clock_enable = config.clock_info.clock_enable;
+        // These 2 are usually 0
+        cr2_temp.clock_phase = config.clock_info.clock_phase;
+        cr2_temp.clock_polarity = config.clock_info.clock_polarity;
+    }
+
+    cr1_temp.usart_enable = 1;
+    cr1_temp.word_length = config.word_length;
+    cr1_temp.oversampling = config.oversampling_not_over8;
+
+    switch (config.parity) {
+        UsartParity.none => {
+            cr1_temp.parity_control_enable = 0;
+        },
+        UsartParity.odd => {
+            cr1_temp.parity_control_enable = 1;
+            cr1_temp.parity_selection_odd_not_even = 1;
+            cr1_temp.parity_error_interrupt_enable = 1;
+            cr3_temp.error_interrupt_enable = 1;
+        },
+        UsartParity.even => {
+            cr1_temp.parity_control_enable = 1;
+            cr1_temp.parity_selection_odd_not_even = 0;
+            cr1_temp.parity_error_interrupt_enable = 1;
+            cr3_temp.error_interrupt_enable = 1;
+        },
+    }
+
+    switch (config.mode) {
+        UsartMode.reciever => {
+            cr1_temp.reciever_enable = 1;
+            cr1_temp.rxne_interrupt_enable = 1;
+        },
+        UsartMode.transmitter => {
+            cr1_temp.transmitter_enable = 1;
+            // polling is overkill
+            // cr1_temp.txe_interrupt_enable = 1;
+
+            // No need for interrupt when transmission complete
+            // cr1_temp.tcie_interrupt_enable = 1;
+        },
+        UsartMode.both => {
+            cr1_temp.transmitter_enable = 1;
+            cr1_temp.reciever_enable = 1;
+            cr1_temp.rxne_interrupt_enable = 1;
+        },
+    }
+    write32(&usart.cr1, cr1_temp);
+    write32(&usart.cr2, cr2_temp);
+    write32(&usart.cr3, cr3_temp);
 }
 
 extern fn get_system_tick() i32;
@@ -319,4 +393,77 @@ pub fn write(usart: *volatile Usart, str: []const u8) usize {
 
 pub fn usart2_write(str: []const u8) usize {
     return write(usart2, str);
+}
+
+const tx_buffer_size = 256;
+// Written by application code; consumed by USART2 ISR.
+var tx_head: usize = 0;
+
+// Written by USART2 ISR; consumed by application code.
+var tx_tail: usize = 0;
+var tx_buffer: [tx_buffer_size]u8 = undefined;
+
+pub fn usart2_write_background(str: []const u8) usize {
+    var written: usize = 0;
+
+    while (written < str.len) {
+        const next_head = (tx_head + 1) % tx_buffer_size;
+
+        // One slot is reserved to distinguish full from empty.
+        if (next_head == tx_tail) break;
+
+        tx_buffer[tx_head] = str[written];
+        tx_head = next_head;
+        written += 1;
+    }
+
+    if (written > 0) {
+        var cr1: UsartCR1 = read32(&usart2.cr1);
+        cr1.txe_interrupt_enable = true;
+        write32(&usart2.cr1, cr1);
+    }
+    return written;
+}
+
+fn usart2_tx_isr() void {
+    if (tx_tail == tx_head) {
+        usart2.cr1.txe_interrupt_enable = false;
+        return;
+    }
+
+    const byte = tx_buffer[tx_tail];
+    tx_tail = (tx_tail + 1) % tx_buffer_size;
+
+    // Write byte to USART2's transmit data register.
+    const data_write: UsartData = .{ .data = byte };
+    macros.write32(&usart2.data, data_write);
+}
+
+// export for C, pub for well pub
+// export fn Usart2Handler() void {
+pub fn Usart2Handler() void {
+    const status: UsartStatus = read32(&usart2.status);
+    if (status.overrun_error) {
+        return;
+    }
+    if (status.framing_error) {
+        return;
+    }
+    if (status.parity_error) {
+        return;
+    }
+    if (status.transmit_data_register_empty) {
+        return usart2_tx_isr();
+    }
+
+    if (status.rxne) {
+        const data: UsartData = read32(&usart2.data);
+        const c: u8 = @intCast(data.data);
+        _ = write_u8(usart2, c);
+
+        // Enter is \r
+        if (c == '\r') {
+            _ = usart2_write("\nPressed enter\n");
+        }
+    }
 }
