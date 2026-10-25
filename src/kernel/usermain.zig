@@ -9,11 +9,14 @@ const stdio = @import("stdio");
 
 const print = stdio.print;
 const vprint = stdio.vprint;
+const vprintb = stdio.vprintb;
 
 pub const panic = std.debug.FullPanic(std_options.kernel_panic_handler);
 
 const input_pin: u32 = 12;
 // const input_letter :
+
+extern fn wait_seconds(seconds: f32) void;
 
 export fn zig_main() noreturn {
     // setup
@@ -22,6 +25,8 @@ export fn zig_main() noreturn {
 
     _ = usart.usart2_write("Writting in the foreground!\n");
     _ = usart.usart2_write_background("Writting in the background!\n");
+
+    stdio.print_example();
 
     if (true) {
         // @panic("Panic works\n");

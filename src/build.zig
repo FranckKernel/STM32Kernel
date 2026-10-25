@@ -18,6 +18,7 @@ pub fn build(b: *std.Build) void {
             .os_tag = .freestanding,
             .abi = .eabihf,
             .cpu_model = .{ .explicit = &std.Target.arm.cpu.cortex_m4 },
+            .cpu_features_add = std.Target.arm.featureSet(&.{.vfp4d16sp}),
         },
     });
 

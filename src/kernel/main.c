@@ -208,7 +208,6 @@ int main(void)
 
 	usart2_rw_macro_test();
 
-	puts("\n\n==== Start of userspace====\n\n");
 	int r = puts("\n\n\n================================ START OF 'UserSpace' main loop ====================\n\n\n");
 	// volatile double x = get_time_s();
 	zig_main();

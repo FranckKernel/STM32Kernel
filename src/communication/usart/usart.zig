@@ -442,8 +442,8 @@ fn usart2_tx_isr() void {
 }
 
 // export for C, pub for well pub
-// export fn Usart2Handler() void {
-pub fn Usart2Handler() void {
+export fn Usart2Handler() void {
+    // pub fn Usart2Handler() void {
     const status: UsartStatus = read32(&usart2.status);
     if (status.overrun_error) {
         return;

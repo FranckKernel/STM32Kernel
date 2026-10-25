@@ -178,7 +178,7 @@ int usart2_write(const char *str, size_t n)
 	return usart_write_n(usart2, str, n);
 }
 
-void Usart2Handler()
+void Usart2HandlerC()
 {
 	usart_status_t status = READ32(&usart2->status);
 	if (status.overrun_error)
