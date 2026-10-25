@@ -427,7 +427,9 @@ pub fn usart2_write_background(str: []const u8) usize {
 
 fn usart2_tx_isr() void {
     if (tx_tail == tx_head) {
-        usart2.cr1.txe_interrupt_enable = false;
+        var cr1: UsartCR1 = read32(&usart2.cr1);
+        cr1.txe_interrupt_enable = false;
+        write32(&usart2.cr1, cr1);
         return;
     }
 
