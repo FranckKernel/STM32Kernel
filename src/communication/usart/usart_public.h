@@ -81,5 +81,7 @@ typedef struct usart usart_t;
 
 void config_usart(volatile usart_t *const usart, const usart_config_t *const config);
 // bool usart_write_u8(volatile usart_t *const usart, uint8_t value);
-int usart_write_n(volatile usart_t *const usart, char *str, int len);
-int usart_write(volatile usart_t *const usart, char *str);
+int usart_write_n(volatile usart_t *const usart, const char *str, int len);
+int usart_write(volatile usart_t *const usart, const char *str);
+
+int usart2_write(const char *str, size_t n);

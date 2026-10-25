@@ -1,5 +1,15 @@
 // build.zig
 const std = @import("std");
+const builtin = @import("builtin");
+
+inline fn checkAligned(addr: anytype, comptime bytes: usize) void {
+    // Only Debug (swap the condition to include ReleaseSafe if you want it there)
+    if (comptime builtin.mode == .Debug) {
+        if (@intFromPtr(addr) % bytes != 0) {
+            @panic("misaligned peripheral access");
+        }
+    }
+}
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{
@@ -19,6 +29,23 @@ pub fn build(b: *std.Build) void {
 
     const gpio_module = b.createModule(.{
         .root_source_file = b.path("gpio/gpio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const macros_module = b.createModule(.{
+        .root_source_file = b.path("common/macros.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const std_options_module = b.createModule(.{
+        .root_source_file = b.path("kernel/std_options.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const stdio_module = b.createModule(.{
+        .root_source_file = b.path("stdio/stdio.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -45,10 +72,11 @@ pub fn build(b: *std.Build) void {
 
     // Add the modules
     entire_kernel_module.addImport("gpio", gpio_module);
-    // entire_kernel_module.addImport("debug", debug_module);
-    // debug_module.addImport("stdio", stdio_module);
-    // stdio_module.addImport("intrinsics", intrinsics_modules);
-    // stdio_module.addImport("string", string_module);
+    entire_kernel_module.addImport("stdio", stdio_module);
+    entire_kernel_module.addImport("std_options", std_options_module);
+    entire_kernel_module.addImport("macros", macros_module);
+    std_options_module.addImport("stdio", stdio_module);
+    gpio_module.addImport("macros", macros_module);
 
     // kernel_lib.root_module.red_zone = false;
     kernel_lib.root_module.link_libc = false;
@@ -60,7 +88,7 @@ pub fn build(b: *std.Build) void {
     // kernel_lib.link_eh_frame_hdr = false;
     // kernel_lib.root_module.
 
-    kernel_lib.bundle_compiler_rt = false;
+    kernel_lib.bundle_compiler_rt = true;
 
     // Add include directories (For C/Cpp headers only)
     // kernel_lib.root_module.addIncludePath(b.path("../ProtectedMode/LongModePrep/"));
@@ -87,6 +115,8 @@ pub fn build(b: *std.Build) void {
     // b.addSystemCommand();
 
     // ======================= Test steps for the user
+    const check = b.step("check", "Compile for the language server");
+    check.dependOn(&kernel_lib.step);
 
     // Set output directory to match your bash script
     const build_dir_path_str = "../../build64";

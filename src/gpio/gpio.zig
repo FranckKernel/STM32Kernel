@@ -1,6 +1,11 @@
 // ============================================================================
 // GPIO MMIO
 // ============================================================================
+const std = @import("std");
+const macros = @import("macros");
+
+const read32 = macros.read32;
+const write32 = macros.write32;
 
 const GPIO_MMIO_ADDRESS_BASE: u32 = 0x4002_0000;
 const GPIO_MMIO_LETTER_DIFF: u32 = 0x400;
@@ -236,10 +241,15 @@ const gpio: [7]*volatile GpioXRegister = .{
     @ptrFromInt(GPIO_MMIO_G_BASE),
 };
 
+// The gpio registers can be accessed be 8 bits, 16 bits or 32 bits RW!
+
 // ============================================================================
 // PUBLIC GPIO API
 // ============================================================================
 pub fn gpioPortModeSetup(port: GpioPortLetter, pin: u8, mode: GpioPortMode) void {
+    var reg = gpio[port].mode;
+    reg.pin[pin] = mode;
+    macros.write32(&gpio[port].mode, reg);
     gpio[port].mode.pin[pin] = mode;
 }
 

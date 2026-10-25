@@ -142,14 +142,24 @@ bool usart_write_u8(volatile usart_t *const usart, uint8_t value)
 	return false;
 }
 
-int usart_write_n(volatile usart_t *const usart, char *str, int len)
+int usart_write_n(volatile usart_t *const usart, const char *str, int len)
 {
 
 	uint32_t system_tick = get_system_tick();
 	for (int i = 0; i < len; i++)
 	{
 		bool timed_out = usart_write_u8(usart, str[i]);
-		if (timed_out || get_system_tick() - system_tick >= 100000)
+		if (timed_out || get_system_tick() - system_tick >= 10000)
+		// The scheduler is very slow.
+		// It is completely possible to stall due to writting.
+		// Baud rate = 38kHz.
+		// Scheduler = 10 Khz
+		// 8 bit + start + stop = 10 bit ber byte.
+		// 512 char = 512 * 10 message.
+		// Tick count = 5120 * 10000/38400 = 1333.3-
+		// With 1000 byte consecutive is even worse.
+		// Hence I'm starting to see why one would want to use a DMA setup for printing
+		// TODO: DMA usart printing
 		{
 			return i;
 		}
@@ -157,9 +167,14 @@ int usart_write_n(volatile usart_t *const usart, char *str, int len)
 	return len;
 }
 
-int usart_write(volatile usart_t *const usart, char *str)
+int usart_write(volatile usart_t *const usart, const char *str)
 {
 	return usart_write_n(usart, str, strlen(str));
+}
+
+int usart2_write(const char *str, size_t n)
+{
+	return usart_write_n(usart2, str, n);
 }
 
 void Usart2Handler()

@@ -104,7 +104,6 @@ int main(void)
 
 	enable_gpio_clock(GPIOA);
 	enable_gpio_clock(GPIOB);
-
 	// rcc->ahb1_enable_register.gpio_a_enable = 1;
 
 	rcc->apb1enr.usart2_enable = 1; // byte access allowed for ahb1
@@ -189,10 +188,15 @@ int main(void)
 	nvic_enable_irq(USART2_IRQn);
 
 	puts("Starting the timers\n");
+	puts("4");
 	start_timer(TIMER4);
+	puts("2");
 	start_timer(TIMER2);
+	puts("3");
 	start_timer(TIMER3);
+	puts("5\n");
 	start_timer(TIMER5);
+	puts("Timer 5 started\n");
 
 	// This basically start the scheduler
 
@@ -204,8 +208,9 @@ int main(void)
 
 	read_usart_status();
 
-	puts("\n\n\n================================ START OF 'UserSpace' main loop ====================\n\n\n");
-	volatile double x = get_time_s();
+	puts("\n\n==== Start of userspace====\n\n");
+	int r = puts("\n\n\n================================ START OF 'UserSpace' main loop ====================\n\n\n");
+	// volatile double x = get_time_s();
 	zig_main();
 	while (1)
 	{
