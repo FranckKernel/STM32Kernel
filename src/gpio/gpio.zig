@@ -29,7 +29,7 @@ pub const GpioPortMode = enum(u2) {
     analog = 0b11,
 };
 
-const GpioPortModeRegister = packed struct {
+const GpioPortModeRegister = packed struct(u32) {
     pin: [16]GpioPortMode,
 };
 
@@ -47,7 +47,7 @@ const GpioPortOutputType = enum(u1) {
     open_drain = 0b1,
 };
 
-const GpioPortOutputTypeRegister = packed struct {
+const GpioPortOutputTypeRegister = packed struct(u32) {
     pin: [16]GpioPortOutputType,
     reserved: u16,
 };
@@ -68,7 +68,7 @@ pub const GpioPortOutputSpeed = enum(u2) {
     high = 0b11,
 };
 
-const GpioPortOutputSpeedRegister = packed struct {
+const GpioPortOutputSpeedRegister = packed struct(u32) {
     pin: [16]GpioPortOutputSpeed,
 };
 
@@ -105,7 +105,7 @@ pub const GpioInputData = enum(u1) {
     high = 0b1,
 };
 
-const GpioPortInputDataRegister = packed struct {
+const GpioPortInputDataRegister = packed struct(u32) {
     pin: [16]GpioInputData,
     reserved: u16,
 };
@@ -124,7 +124,7 @@ pub const GpioOutputData = enum(u1) {
     high = 0b1,
 };
 
-const GpioPortOutputDataRegister = packed struct {
+const GpioPortOutputDataRegister = packed struct(u32) {
     pin: [16]GpioOutputData,
     reserved: u16,
 };
@@ -148,7 +148,7 @@ const GpioPortBitReset = enum(u1) {
     reset = 0b1,
 };
 
-const GpioPortBitSetResetRegister = packed struct {
+const GpioPortBitSetResetRegister = packed struct(u32) {
     set: [16]GpioPortBitSet,
     reset: [16]GpioPortBitReset,
 };
@@ -162,7 +162,7 @@ comptime {
 // GPIO REGISTER BLOCK
 // ============================================================================
 
-const GpioXRegister = struct {
+const GpioXRegister = extern struct {
     mode: GpioPortModeRegister, // 0x00
     output_type: GpioPortOutputTypeRegister, // 0x04
     output_speed: GpioPortOutputSpeedRegister, // 0x08
@@ -247,10 +247,18 @@ const gpio: [7]*volatile GpioXRegister = .{
 // PUBLIC GPIO API
 // ============================================================================
 pub fn gpioPortModeSetup(port: GpioPortLetter, pin: u8, mode: GpioPortMode) void {
-    var reg = gpio[port].mode;
-    reg.pin[pin] = mode;
-    macros.write32(&gpio[port].mode, reg);
-    gpio[port].mode.pin[pin] = mode;
+    const manual_method: bool = false;
+
+    comptime if (manual_method == true) {
+        var reg = gpio[port].mode;
+        reg.pin[pin] = mode;
+
+        // One or the other
+        // macros.write32(&gpio[port].mode, reg);
+        gpio[port].mode = reg;
+    } else {
+        gpio[port].mode.pin[pin] = mode;
+    };
 }
 
 pub fn gpioOutputTypeSetup(port: GpioPortLetter, pin: u8, output_type: GpioPortOutputType) void {

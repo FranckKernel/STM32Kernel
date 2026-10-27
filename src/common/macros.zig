@@ -6,6 +6,10 @@ pub inline fn activateModuleMacros() void {
     const ptr: *volatile u32 = &activation_flag;
     ptr.* = 1;
 }
+// Readme:
+// In zig, the read and write macros are kinda useless
+//
+
 // =========================== The actual macros
 
 fn Pointee(comptime P: type) type {
@@ -45,6 +49,8 @@ inline fn checkReg(addr: anytype, comptime bytes: usize) void {
         checkAlignedRuntime(addr, bytes);
     }
 }
+
+// ================================================== Read and Write macros, they are kinda useless;
 
 /// READ32: one 32-bit volatile load, reinterpreted as the register's type.
 pub inline fn read32(addr: anytype) Pointee(@TypeOf(addr)) {

@@ -221,26 +221,26 @@ pub const UsartMode = enum(u8) {
 };
 
 pub const UsartHardwareControl = enum(u8) {
-    none,
+    none = 0,
     rts,
     cts,
     both,
 };
 
-const UsartConfig = struct {
-    baudrate: UsartBaudrate,
-    word_length: UsartWordLength,
-    stop_bit: UsartStopBits,
-    parity: UsartParity,
-    mode: UsartMode,
-    hardware_control: UsartHardwareControl,
-    oversampling_not_over8: UsartOversampling,
+pub const UsartConfig = struct {
+    baudrate: UsartBaudrate = UsartBaudrate.baudrate_38400,
+    word_length: UsartWordLength = UsartWordLength.bits8,
+    stop_bit: UsartStopBits = UsartStopBits.@"1",
+    parity: UsartParity = UsartParity.none,
+    mode: UsartMode = UsartMode.both,
+    hardware_control: UsartHardwareControl = UsartHardwareControl.none,
+    oversampling_not_over8: UsartOversampling = UsartOversampling.@"16",
 
     clock_info: struct {
-        clock_enable: bool,
-        clock_polarity: bool,
-        clock_phase: bool,
-    },
+        clock_enable: bool = false,
+        clock_polarity: bool = false,
+        clock_phase: bool = false,
+    } = .{},
 };
 
 // ================================ The functions
@@ -248,28 +248,31 @@ const UsartConfig = struct {
 const clock_frequency: u32 = 96 * 1000 * 1000;
 const timer_prescaler: u32 = clock_frequency / 1000_000;
 
-pub fn config_usart(usart: *volatile Usart, config: *const UsartConfig) void {
+pub fn config_usart(usart: *volatile Usart, config: UsartConfig) void {
     //
 
-    const clock_frequency_f: f64 = clock_frequency / 2.0;
-    const oversampling: u8 = if (config.oversampling_not_over8) 8 else 16;
+    // const clock_frequency_f: f64 = @as(f64, clock_frequency) / 2.0; // Ok because comptime known
+    const pclk: f64 = @as(f64, clock_frequency) / 2.0; // OK: clock_frequency is comptime-known
+    const oversampling: f64 = if (config.oversampling_not_over8 == .@"8") 8.0 else 16.0;
+    const baud: f64 = @floatFromInt(@backingInt(config.baudrate));
 
-    var divider: f64 = clock_frequency_f / @as(f64, config.baudrate);
-    divider /= @as(f64, oversampling);
-    const divider_fraction: f64 = divider - @as(u32, divider);
+    const divider: f64 = pclk / baud / oversampling;
+    // var divider: f64 = clock_frequency_f / @as(f64, @floatFromInt(@backingInt(config.baudrate)));
+    const whole: f64 = @floor(divider);
+    const divider_fraction: f64 = divider - whole;
 
-    const div: u16 = @as(u16, divider);
-    const fraction_diviser: u8 = @as(u8, (@as(f64, oversampling) * divider_fraction));
+    const div: u16 = @intFromFloat(whole);
+    const fraction_divisor: u8 = @intFromFloat(oversampling * divider_fraction);
 
-    const temp_brr: UsartBRR = .{ .div_mantissa = div, .div_fraction = fraction_diviser };
+    const temp_brr: UsartBRR = .{ .div_mantissa = @truncate(div), .div_fraction = @truncate(fraction_divisor) };
 
     // In fixed signed representation
     write32(&usart.brr, temp_brr);
 
     // Writting to CR
-    const cr1_temp: UsartCR1 = read32(&usart.cr1);
-    const cr2_temp: UsartCR2 = read32(&usart.cr2);
-    const cr3_temp: UsartCR3 = read32(&usart.cr3);
+    var cr1_temp: UsartCR1 = usart.cr1;
+    var cr2_temp: UsartCR2 = usart.cr2;
+    var cr3_temp: UsartCR3 = usart.cr3;
 
     cr2_temp.stop_bits = config.stop_bit;
 
@@ -280,50 +283,50 @@ pub fn config_usart(usart: *volatile Usart, config: *const UsartConfig) void {
         cr2_temp.clock_polarity = config.clock_info.clock_polarity;
     }
 
-    cr1_temp.usart_enable = 1;
+    cr1_temp.usart_enable = true;
     cr1_temp.word_length = config.word_length;
     cr1_temp.oversampling = config.oversampling_not_over8;
 
     switch (config.parity) {
         UsartParity.none => {
-            cr1_temp.parity_control_enable = 0;
+            cr1_temp.parity_control_enable = false;
         },
         UsartParity.odd => {
-            cr1_temp.parity_control_enable = 1;
-            cr1_temp.parity_selection_odd_not_even = 1;
-            cr1_temp.parity_error_interrupt_enable = 1;
-            cr3_temp.error_interrupt_enable = 1;
+            cr1_temp.parity_control_enable = true;
+            cr1_temp.parity_selection_odd_not_even = true;
+            cr1_temp.parity_error_interrupt_enable = true;
+            cr3_temp.error_interrupt_enable = true;
         },
         UsartParity.even => {
-            cr1_temp.parity_control_enable = 1;
-            cr1_temp.parity_selection_odd_not_even = 0;
-            cr1_temp.parity_error_interrupt_enable = 1;
-            cr3_temp.error_interrupt_enable = 1;
+            cr1_temp.parity_control_enable = true;
+            cr1_temp.parity_selection_odd_not_even = false;
+            cr1_temp.parity_error_interrupt_enable = true;
+            cr3_temp.error_interrupt_enable = true;
         },
     }
 
     switch (config.mode) {
         UsartMode.reciever => {
-            cr1_temp.reciever_enable = 1;
-            cr1_temp.rxne_interrupt_enable = 1;
+            cr1_temp.reciever_enable = true;
+            cr1_temp.rxne_interrupt_enable = true;
         },
         UsartMode.transmitter => {
-            cr1_temp.transmitter_enable = 1;
+            cr1_temp.transmitter_enable = true;
             // polling is overkill
-            // cr1_temp.txe_interrupt_enable = 1;
+            // cr1_temp.txe_interrupt_enable= true;
 
             // No need for interrupt when transmission complete
-            // cr1_temp.tcie_interrupt_enable = 1;
+            // cr1_temp.tcie_interrupt_enable= true;
         },
         UsartMode.both => {
-            cr1_temp.transmitter_enable = 1;
-            cr1_temp.reciever_enable = 1;
-            cr1_temp.rxne_interrupt_enable = 1;
+            cr1_temp.transmitter_enable = true;
+            cr1_temp.reciever_enable = true;
+            cr1_temp.rxne_interrupt_enable = true;
         },
     }
-    write32(&usart.cr1, cr1_temp);
-    write32(&usart.cr2, cr2_temp);
-    write32(&usart.cr3, cr3_temp);
+    usart.cr1 = cr1_temp;
+    usart.cr2 = cr2_temp;
+    usart.cr3 = cr3_temp;
 }
 
 extern fn get_system_tick() i32;

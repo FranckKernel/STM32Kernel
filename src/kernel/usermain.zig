@@ -23,6 +23,8 @@ export fn zig_main() noreturn {
     // setup
 
     vprint("\n\n===Welcome to zig ====\n\n", .{});
+    const usart1_config: usart.UsartConfig = .{};
+    usart.config_usart(usart.usart1, usart1_config);
 
     _ = usart.usart2_write("Writting in the foreground!\n");
     _ = usart.usart2_write_background("Writting in the background!\n");
