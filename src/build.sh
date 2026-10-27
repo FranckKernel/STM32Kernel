@@ -76,6 +76,7 @@ FPU="./cpu/fpu"
 NVIC="./cpu/nvic"
 
 USART="./communication/usart"
+DMA="./dm/"
 
 # ============= FLAGS
 USE_LIBC="false" # "true" or "false"

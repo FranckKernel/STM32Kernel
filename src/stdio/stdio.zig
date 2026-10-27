@@ -1,6 +1,13 @@
 const std = @import("std");
 const usart = @import("usart");
 
+var activation_flag: u32 = 0;
+pub inline fn activateModuleStdio() void {
+    const ptr: *volatile u32 = &activation_flag;
+    ptr.* = 1;
+}
+// ===============
+
 // extern fn usart2_write(ptr: [*]const u8, len: usize) i32;
 
 // C import is depracated

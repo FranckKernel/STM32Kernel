@@ -24,6 +24,8 @@ const UsartData = packed struct(u32) {
 const usartDataCheck = {
     if (@bitSizeOf(UsartData) != 32)
         @compileError("UsartData must be 32 bits");
+    if (@alignOf(UsartData) != @alignOf(u32))
+        @compileError("UsartData must be 32 bits alligned");
 };
 
 // ================================== USART Baud Rate Register (BRR)

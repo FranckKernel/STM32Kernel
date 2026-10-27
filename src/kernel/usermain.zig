@@ -6,6 +6,7 @@ const usart = @import("usart");
 const macros = @import("macros");
 const gpio = @import("gpio");
 const stdio = @import("stdio");
+const dma = @import("dma");
 
 const print = stdio.print;
 const vprint = stdio.vprint;
@@ -25,6 +26,7 @@ export fn zig_main() noreturn {
 
     _ = usart.usart2_write("Writting in the foreground!\n");
     _ = usart.usart2_write_background("Writting in the background!\n");
+    dma.activateModuleDMA();
 
     stdio.print_example();
 

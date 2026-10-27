@@ -56,6 +56,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
+    const dma_module = b.createModule(.{
+        .root_source_file = b.path("dma/dma.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     //
 
     // ======================= The The full thing
@@ -83,10 +89,16 @@ pub fn build(b: *std.Build) void {
     main_module.addImport("std_options", std_options_module);
     main_module.addImport("macros", macros_module);
     main_module.addImport("usart", usart_module);
+    main_module.addImport("dma", dma_module);
+
     std_options_module.addImport("stdio", stdio_module);
     usart_module.addImport("macros", macros_module);
     stdio_module.addImport("usart", usart_module);
     gpio_module.addImport("macros", macros_module);
+
+    // The common imports
+    dma_module.addImport("macros", macros_module);
+    dma_module.addImport("stdio", stdio_module);
 
     // kernel_lib.root_module.red_zone = false;
     kernel_lib.root_module.link_libc = false;
