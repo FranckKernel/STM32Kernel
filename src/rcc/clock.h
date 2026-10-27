@@ -578,8 +578,10 @@ static const uint32_t RCC_MMIO_ADDRESS_BASE = 0x40023800;
 
 extern volatile rcc_register_t *const rcc;
 
+#include "dma_types.h"
 #include "gpio_types.h"
 void enable_gpio_clock(enum GPIO_PORT_LETTER letter);
+void enable_dma_clock(enum DMA_Number controller);
 void configure_rcc_timers();
 void enable_timers_rcc();
 void switch_to_pll(uint8_t clock_frequency_Mhz);

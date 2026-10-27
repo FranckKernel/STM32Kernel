@@ -210,6 +210,13 @@ int main(void)
 
 	int r = puts("\n\n\n================================ START OF 'UserSpace' main loop ====================\n\n\n");
 	// volatile double x = get_time_s();
+
+	bool enable_dma = true;
+	if (enable_dma)
+	{
+		enable_dma_clock(DMA1);
+		enable_dma_clock(DMA2);
+	}
 	zig_main();
 	while (1)
 	{

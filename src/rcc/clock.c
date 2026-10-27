@@ -1,4 +1,5 @@
 #include "clock.h"
+#include "dma_types.h"
 #include "flash.h"
 #include "gpio.h"
 #include "gpio_types.h"
@@ -7,11 +8,57 @@ volatile rcc_register_t *const rcc = (volatile rcc_register_t *const)RCC_MMIO_AD
 
 void enable_gpio_clock(enum GPIO_PORT_LETTER letter)
 {
-	volatile rcc_ahb1enr_t *const enable_register	  = &rcc->ahb1_enable_register;
-	volatile uint32_t *const	  enable_register_raw = (volatile uint32_t *const)enable_register;
-	*enable_register_raw |= (1 << letter);
+	volatile rcc_ahb1enr_t *const enable_register = &rcc->ahb1_enable_register;
 	// need to use the raw format because of runtime changes.
 	// can't use an array of u(<8) and then a enum name like in zig
+
+	switch (letter)
+	{
+	case GPIOA:
+	{
+		rcc->ahb1_enable_register.gpio_a_enable = true;
+		break;
+	}
+	case GPIOB:
+	{
+		rcc->ahb1_enable_register.gpio_b_enable = true;
+		break;
+	}
+	case GPIOC:
+	{
+		rcc->ahb1_enable_register.gpio_c_enable = true;
+		break;
+	}
+	case GPIOD:
+	{
+		rcc->ahb1_enable_register.gpio_d_enable = true;
+		break;
+	}
+	case GPIOE:
+	{
+		rcc->ahb1_enable_register.gpio_e_enable = true;
+		break;
+	}
+	case GPIOH:
+	{
+		rcc->ahb1_enable_register.gpio_h_enable = true;
+		break;
+	}
+	default:
+	{
+
+		// F and G not supported!
+		break;
+	}
+	}
+
+	if (false)
+	{
+		volatile uint32_t *const enable_register_raw = (volatile uint32_t *const)enable_register;
+		*enable_register_raw |= (1 << letter);
+	}
+
+	// Tbh, could use a switch statement
 
 	if (false)
 	{
@@ -19,6 +66,23 @@ void enable_gpio_clock(enum GPIO_PORT_LETTER letter)
 		enable_register->gpio_a_enable = true;
 		enable_register->gpio_b_enable = true;
 		// In zig, we could have a gpio_enable array. Where you do rcc->rcc_ahb1_enable_register.gpio_enable[.a] = 1;
+	}
+}
+
+void enable_dma_clock(enum DMA_Number controller)
+{
+	switch (controller)
+	{
+	case (DMA1):
+	{
+		rcc->ahb1_enable_register.dma1_clock_enable = 1;
+		break;
+	}
+	case (DMA2):
+	{
+		rcc->ahb1_enable_register.dma2_clock_enable = 1;
+		break;
+	}
 	}
 }
 

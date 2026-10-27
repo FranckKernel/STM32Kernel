@@ -76,7 +76,7 @@ FPU="./cpu/fpu"
 NVIC="./cpu/nvic"
 
 USART="./communication/usart"
-DMA="./dm/"
+DMA="./dma/"
 
 # ============= FLAGS
 USE_LIBC="false" # "true" or "false"
@@ -149,15 +149,15 @@ $CC "${CFLAGS[@]}" -c "./cpu/nvic/nvic.c" -o "$BUILD_DIR"/nvic.o "-I$COMMON"
 $CC "${CFLAGS[@]}" -c "$FPU/fpu.c" -o "$BUILD_DIR"/fpu.o "-I$COMMON"
 
 $CC "${CFLAGS[@]}" -c "$GPIO/gpio.c" -o "$BUILD_DIR"/gpio.o
-$CC "${CFLAGS[@]}" -c "$TIMERS/timer.c" -o "$BUILD_DIR"/timer.o
+$CC "${CFLAGS[@]}" -c "$TIMERS/timer.c" -o "$BUILD_DIR"/timer.o "-I$DMA"
 $CC "${CFLAGS[@]}" -c "$TASKS/task.c" -o "$BUILD_DIR"/task.o "-I$GPIO" "-I$TIMERS" "-I$STDIO"
 $CC "${CFLAGS[@]}" -c "$TASKS/scheduler.c" -o "$BUILD_DIR"/scheduler.o "-I$TIMERS" "-I$GPIO"
 $CC "${CFLAGS[@]}" -c "$FLASH/flash.c" -o "$BUILD_DIR"/flash.o
-$CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO" "-I$FLASH"
+$CC "${CFLAGS[@]}" -c "$RCC/clock.c" -o "$BUILD_DIR"/clock.o "-I$GPIO" "-I$FLASH" "-I$DMA"
 
 $CC "${CFLAGS[@]}" -c "$USART/usart.c" -o "$BUILD_DIR"/usart.o "-I$COMMON" "-I$TIMERS" "-I$STDLIB" "-I$STDIO"
 
-$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS" "-I$FLASH" "-I$USART" "-I$STDIO" "-I$FPU"
+$CC "${CFLAGS[@]}" -c kernel/main.c -o "$BUILD_DIR"/main.o "-I$GPIO" "-I$STDLIB" "-I$RCC" "-I$COMMON" "-I$NVIC" "-I$TIMERS" "-I$TASKS" "-I$FLASH" "-I$USART" "-I$STDIO" "-I$FPU" "-I$DMA"
 
 # ================ Zig work =================
 zig build "${ZIG_RELEASE_FLAG[@]}" --verbose

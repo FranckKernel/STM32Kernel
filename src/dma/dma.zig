@@ -4,6 +4,12 @@ const builtin = @import("builtin");
 const macros = @import("macros");
 const stdio = @import("stdio");
 
+// Rule for default value:
+// Important, must be set (don't default initialize)
+// Important, but has make sense default, then default to "make sense default"
+// Don't care, default to hardware default value
+// Reserved: Default to hardware default value (most likely 0)
+
 // DMA registers must be address by 32 bit
 
 const read32 = macros.read32;
@@ -168,7 +174,7 @@ comptime {
 
 // ===================================== The DMA Stream Registers
 const SxCR = packed struct(u32) {
-    enable: bool = false,
+    enable: bool,
     raw_rest: u31,
 };
 comptime {
@@ -177,7 +183,7 @@ comptime {
 
 // =========
 const SxNDTR = packed struct(u32) {
-    number_of_data_items_to_transfer: u16 = 0,
+    number_of_data_items_to_transfer: u16,
     _reserved: u16 = 0,
     // This register is read only when the stream is disable. So disable the stream before starting a write. Then enable
 };
@@ -214,7 +220,7 @@ comptime {
 }
 // =========
 const SxFCR = packed struct(u32) {
-    raw: u32,
+    raw: u32 = 0,
 };
 
 comptime {
@@ -328,20 +334,35 @@ pub const StreamNumber = enum(u3) {
 };
 
 // ================================ The functions:
-pub fn configure(controller: Controller, stream: StreamNumber, config: StreamConfig) void {
+pub fn configure(comptime controller: Controller, comptime stream: StreamNumber, config: StreamConfig) void {
     _ = controller;
     _ = stream;
     _ = config;
 }
 
-pub fn enable(controller: Controller, stream: StreamNumber) void {
-    _ = controller;
-    _ = stream;
+/// Once configured, enable it
+pub fn enable(comptime controller: Controller, comptime stream: StreamNumber) void {
+    const dma_ptr: *volatile DMA = dmas[@backingInt(controller)];
+    const streamIdx: u3 = @backingInt(stream);
+
+    dma_ptr.streams[streamIdx].cr.enable = true;
 }
 
-pub fn disable(controller: Controller, stream: StreamNumber) void {
-    _ = controller;
-    _ = stream;
+/// It request to disable it.
+/// Not instant. After disable, poll isEnabled();
+pub fn disable(comptime controller: Controller, comptime stream: StreamNumber) void {
+    const dma_ptr: *volatile DMA = dmas[@backingInt(controller)];
+    const streamIdx: u3 = @backingInt(stream);
+
+    dma_ptr.streams[streamIdx].cr.enable = false;
+}
+
+/// After disable, poll enable
+pub fn isEnabled(comptime controller: Controller, comptime stream: StreamNumber) bool {
+    const dma_ptr = dmas[@backingInt(controller)];
+    const stream_idx: u3 = @backingInt(stream);
+
+    return dma_ptr.streams[stream_idx].cr.enable;
 }
 
 pub fn getFlags(comptime controller: Controller, comptime stream: StreamNumber) StreamFlags {
@@ -368,6 +389,7 @@ pub inline fn clearFlags(comptime controller: Controller, comptime stream: Strea
         dma_ptr.hifcr = Hifcr.clearFlags(idx, flags);
     }
 }
+// ========================= Test to be called, to check the assembly
 
 noinline fn testGetFlags() bool {
     const flags = getFlags(.dma1, .s4);
@@ -376,4 +398,64 @@ noinline fn testGetFlags() bool {
 
 noinline fn testClearFlags() void {
     clearFlags(.dma1, .s4, .{ .clear_fifo_error_interrupt_flag = true });
+}
+
+// ====================================== Helper functions
+inline fn toClearFlags(flags: StreamFlags) StreamFlagsClear {
+    return @bitCast(flags);
+}
+
+// ====================================== Example of ISR :
+
+export fn DMA1_Stream5_ISR_Example() void {
+    //
+    const flags: StreamFlags = getFlags(.dma1, .s5);
+
+    const slow_way: bool = false;
+    if (comptime slow_way) {
+        var cFlags: StreamFlagsClear = .{};
+
+        if (flags.fifo_error_interrupt_flag) {
+            cFlags.clear_fifo_error_interrupt_flag = true;
+        }
+        if (flags.direct_mode_error_interrupt_flag) {
+            cFlags.clear_direct_mode_error_interrupt_flag = true;
+        }
+        if (flags.transfer_error_interrupt_flag) {
+            cFlags.clear_transfer_error_interrupt_flag = true;
+        }
+        if (flags.half_transfer_interrupt_flag) {
+            cFlags.clear_half_transfer_interrupt_flag = true;
+        }
+        if (flags.transfer_complete_interrupt_flag) {
+            cFlags.clear_transfer_complete_interrupt_flag = true;
+            // Transfer complete, actually do something with this.
+        }
+        clearFlags(.dma1, .s5, cFlags);
+    } else {
+        if (flags.transfer_complete_interrupt_flag) {
+            // Transfer complete, actually do something with this.
+
+            // For a write command using dma.
+            // do some buffer cleaning.
+            // The head and tail, modify it...
+
+            // Don't need to disable it. Once it's complete, the enable flag will be cleared
+            // disable(.dma1, .s5);
+
+            // For a message queue, it would put it here.
+            // There's a queue.
+            // if the queue is not empty, the writter enqueue his request.
+            // If it is empty, it config and enables it.
+            // Now here, the request has finished.
+            // If the queue is not empty, dequeue it. Configure it and then enable it.
+
+            // The dma transfer complete will tell you when usart recieved the final byte in DR.
+            // But usart will take some time to write it.
+            // It can send an interrupt when the last bit of that byte (including parity [optional] and stop bits are written)
+        }
+
+        // This works because it has the same structure
+        clearFlags(.dma1, .s5, toClearFlags(flags));
+    }
 }
