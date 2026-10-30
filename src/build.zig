@@ -93,12 +93,15 @@ pub fn build(b: *std.Build) void {
 
     std_options_module.addImport("stdio", stdio_module);
     usart_module.addImport("macros", macros_module);
+    usart_module.addImport("dma", dma_module);
+    stdio_module.addImport("usart", usart_module);
     stdio_module.addImport("usart", usart_module);
     gpio_module.addImport("macros", macros_module);
 
     // The common imports
     dma_module.addImport("macros", macros_module);
     dma_module.addImport("stdio", stdio_module);
+    // If I use stdio for testing dma...Circular dependancy
 
     // kernel_lib.root_module.red_zone = false;
     kernel_lib.root_module.link_libc = false;

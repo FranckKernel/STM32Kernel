@@ -31,6 +31,7 @@ export fn zig_main() noreturn {
     dma.activateModuleDMA();
 
     stdio.print_example();
+    _ = usart.usart2_write_dma("Hello\n");
 
     if (true) {
         // @panic("Panic works\n");

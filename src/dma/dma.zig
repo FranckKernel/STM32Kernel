@@ -2,7 +2,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 
 const macros = @import("macros");
-const stdio = @import("stdio");
+// const stdio = @import("stdio");
 
 // Rule for default value:
 // Important, must be set (don't default initialize)
@@ -47,7 +47,7 @@ const DMA2_BASE: u32 = DMA_BASE + 0x400;
 
 // ===================================== The DMA common registers
 
-const StreamFlags = packed struct(u6) {
+pub const StreamFlags = packed struct(u6) {
     fifo_error_interrupt_flag: bool = false, // bit 0
     _reserved: u1 = 0, // bit 1
     direct_mode_error_interrupt_flag: bool = false, // bit 2
@@ -115,7 +115,7 @@ comptime {
 }
 
 // =========
-const StreamFlagsClear = packed struct(u6) {
+pub const StreamFlagsClear = packed struct(u6) {
     clear_fifo_error_interrupt_flag: bool = false, // bit 0
     _reserved: u1 = 0, // bit 1
     clear_direct_mode_error_interrupt_flag: bool = false, // bit 2
@@ -173,12 +173,136 @@ comptime {
 }
 
 // ===================================== The DMA Stream Registers
+
+const FlowController = enum(u1) {
+    dma = 0b0,
+    peripheral = 0b1,
+};
+
+pub const Direction = enum(u2) {
+    peripheral_to_memory = 0b00,
+    memory_to_peripheral = 0b01,
+    memory_to_memory = 0b10,
+    // reserved = 0b11,
+};
+
+pub const DataSize = enum(u2) {
+    bit8 = 0b00,
+    bit16 = 0b01,
+    bit32 = 0b10,
+    // reserved = 0b11,
+};
+
+const OffsetSize = enum(u1) {
+    use_psize = 0b0,
+    use_4 = 0b1,
+};
+
+pub const PriorityLevel = enum(u2) {
+    low = 0b00,
+    medium = 0b01,
+    high = 0b10,
+    very_high = 0b11,
+};
+
+const Target = enum(u1) {
+    m0ar = 0b0,
+    m1ar = 0b1,
+};
+
+const BurstConfig = enum(u2) {
+    single_transfer = 0b00,
+    increment_4 = 0b01,
+    increment_8 = 0b10,
+    increment16 = 0b11,
+};
+
+pub const Channel = enum(u3) {
+    ch0 = 0b000,
+    ch1 = 0b001,
+    ch2 = 0b010,
+    ch3 = 0b011,
+    ch4 = 0b100,
+    ch5 = 0b101,
+    ch6 = 0b110,
+    ch7 = 0b111,
+};
+
 const SxCR = packed struct(u32) {
-    enable: bool,
-    raw_rest: u31,
+    enable: bool, // bit 0
+    direct_mode_error_interrupt_enable: bool = false, // bit 1
+    transfer_error_interrupt_enable: bool = false, // bit 2
+    half_transfer_interrupt_enable: bool = false, // bit 3
+    transfer_complete_interrupt_enable: bool, // bit 4
+
+    peripheral_flow_controller: FlowController = FlowController.dma, // bit 5
+    data_transfer_direction: Direction, // bit 6-7
+    circular_mode_enable: bool, // loop mode basically, automatic reload
+
+    peripheral_increment: bool,
+    memory_increment: bool,
+    peripheral_data_size: DataSize, // p_size
+    memory_data_size: DataSize,
+    peripheral_increment_offset_size: OffsetSize = OffsetSize.use_psize,
+
+    priority: PriorityLevel,
+    double_buffer_mode_enable: bool = false,
+    current_target: Target = Target.m0ar,
+
+    _reserved1: u1 = 0,
+
+    peripheral_burst: BurstConfig = BurstConfig.single_transfer,
+    memory_burst: BurstConfig = BurstConfig.single_transfer,
+
+    channel_selection: Channel,
+    _reserved2: u4 = 0,
 };
 comptime {
     macros.checkRegisterType32(SxCR);
+}
+
+comptime {
+    // Interrupt enables
+    std.debug.assert(@bitOffsetOf(SxCR, "enable") == 0);
+    std.debug.assert(@bitOffsetOf(SxCR, "direct_mode_error_interrupt_enable") == 1);
+    std.debug.assert(@bitOffsetOf(SxCR, "transfer_error_interrupt_enable") == 2);
+    std.debug.assert(@bitOffsetOf(SxCR, "half_transfer_interrupt_enable") == 3);
+    std.debug.assert(@bitOffsetOf(SxCR, "transfer_complete_interrupt_enable") == 4);
+
+    // Config
+    std.debug.assert(@bitOffsetOf(SxCR, "peripheral_flow_controller") == 5); // PFCTRL
+    std.debug.assert(@bitOffsetOf(SxCR, "data_transfer_direction") == 6); // DIR[1:0]
+    std.debug.assert(@bitOffsetOf(SxCR, "circular_mode_enable") == 8); // CIRC
+    std.debug.assert(@bitOffsetOf(SxCR, "peripheral_increment") == 9); // PINC
+    std.debug.assert(@bitOffsetOf(SxCR, "memory_increment") == 10); // MINC
+    std.debug.assert(@bitOffsetOf(SxCR, "peripheral_data_size") == 11); // PSIZE[1:0]
+    std.debug.assert(@bitOffsetOf(SxCR, "memory_data_size") == 13); // MSIZE[1:0]
+    std.debug.assert(@bitOffsetOf(SxCR, "peripheral_increment_offset_size") == 15); // PINCOS
+    std.debug.assert(@bitOffsetOf(SxCR, "priority") == 16); // PL[1:0]
+    std.debug.assert(@bitOffsetOf(SxCR, "double_buffer_mode_enable") == 18); // DBM
+    std.debug.assert(@bitOffsetOf(SxCR, "current_target") == 19); // CT
+
+    // Burst
+    std.debug.assert(@bitOffsetOf(SxCR, "peripheral_burst") == 21); // PBURST[1:0]
+    std.debug.assert(@bitOffsetOf(SxCR, "memory_burst") == 23); // MBURST[1:0]
+
+    // Channel + reserved
+    std.debug.assert(@bitOffsetOf(SxCR, "channel_selection") == 25);
+
+    // Sanity: total bit width
+    std.debug.assert(@bitSizeOf(SxCR) == 32);
+}
+
+comptime {
+    // Useless, but all in one place.
+    // Maybe I'll use something like this. keeping for copy paste modify inspiration
+    std.debug.assert(@bitSizeOf(Direction) == 2);
+    std.debug.assert(@bitSizeOf(DataSize) == 2);
+    std.debug.assert(@bitSizeOf(PriorityLevel) == 2);
+    std.debug.assert(@bitSizeOf(BurstConfig) == 2);
+    std.debug.assert(@bitSizeOf(Channel) == 3);
+    std.debug.assert(@bitSizeOf(Target) == 1);
+    std.debug.assert(@bitSizeOf(FlowController) == 1);
 }
 
 // =========
@@ -312,9 +436,23 @@ comptime {
 }
 
 // ================================ The public config struct:
-const StreamConfig = struct {
+pub const StreamConfig = struct {
+    data_transfer_direction: Direction,
+    circular_mode_enable: bool,
 
-    //
+    peripheral_increment: bool,
+    memory_increment: bool,
+    peripheral_data_size: DataSize,
+    memory_data_size: DataSize,
+
+    priority: PriorityLevel,
+    channel: Channel,
+
+    // Now we get into stuff thats not just SCR
+    peripheral_address: *volatile anyopaque,
+    memory_address_0: *anyopaque,
+    memory_address_1: ?*anyopaque = null,
+    count: u16,
 };
 
 pub const Controller = enum(u2) {
@@ -334,10 +472,43 @@ pub const StreamNumber = enum(u3) {
 };
 
 // ================================ The functions:
-pub fn configure(comptime controller: Controller, comptime stream: StreamNumber, config: StreamConfig) void {
-    _ = controller;
-    _ = stream;
-    _ = config;
+/// Configure and also start it
+pub fn configure_and_start(comptime controller: Controller, comptime stream: StreamNumber, config: StreamConfig) void {
+    const dma_ptr: *volatile DMA = dmas[@backingInt(controller)];
+    const streamIdx: u3 = @backingInt(stream);
+    const streamPtr = &dma_ptr.streams[streamIdx];
+
+    streamPtr.cr.enable = false;
+    while (streamPtr.cr.enable) {}
+
+    streamPtr.m0ar = .{ .memory_address = @intFromPtr(config.memory_address_0) };
+    streamPtr.m1ar = .{
+        .memory_address = if (config.memory_address_1) |ptr|
+            @intFromPtr(ptr)
+        else
+            0,
+    };
+    streamPtr.npar = .{ .peripheral_address = @intFromPtr(config.peripheral_address) };
+    streamPtr.ndtr = .{ .number_of_data_items_to_transfer = config.count };
+
+    const localConfigRegister: SxCR = .{
+        .enable = true,
+        .transfer_complete_interrupt_enable = true,
+
+        .data_transfer_direction = config.data_transfer_direction,
+        .circular_mode_enable = config.circular_mode_enable,
+        .peripheral_increment = config.peripheral_increment,
+        .memory_increment = config.memory_increment,
+
+        .peripheral_data_size = config.peripheral_data_size,
+        .memory_data_size = config.memory_data_size,
+
+        .priority = config.priority,
+        .channel_selection = config.channel,
+    };
+    streamPtr.cr = localConfigRegister;
+
+    // Now the other stuff.
 }
 
 /// Once configured, enable it
@@ -401,7 +572,7 @@ noinline fn testClearFlags() void {
 }
 
 // ====================================== Helper functions
-inline fn toClearFlags(flags: StreamFlags) StreamFlagsClear {
+pub inline fn toClearFlags(flags: StreamFlags) StreamFlagsClear {
     return @bitCast(flags);
 }
 

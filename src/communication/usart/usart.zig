@@ -1,5 +1,6 @@
 const std = @import("std");
 const macros = @import("macros");
+const dma = @import("dma");
 // const macros_direct = @import("../../common/macros.zig");
 
 const read32 = macros.read32;
@@ -474,4 +475,210 @@ export fn Usart2Handler() void {
             _ = usart2_write("\nPressed enter\n");
         }
     }
+}
+
+// ========================================== DMA Usart
+
+var usart2_dma_busy: bool = false;
+
+pub inline fn usart2_dma_is_busy() bool {
+    return usart2_dma_busy;
+}
+
+const usart2_dma_ring_buffer_size = 4096;
+
+var tx_head_dma: usize = 0; // The start of the queue. When dequeing, the isr adds to this
+var tx_tail_dma: usize = 0; // The end of the queue. When enqueueing, the writter add to this.
+
+const RingBufferError = error{
+    Full,
+    Empty,
+    TransferInProgress,
+};
+
+const RingBuffer = struct {
+    buffer: [usart2_dma_ring_buffer_size]u8 = @splat(0),
+    head: usize = 0, // The start of the queue. When dequeing, the isr adds to this
+    tail: usize = 0, // The end of the queue. When enqueueing, the writter add to this.
+    capacity: usize = usart2_dma_ring_buffer_size,
+    count: usize = 0,
+    last_transfer_size: usize = 0,
+
+    pub fn startTransfer(self: *RingBuffer, msg: []u8) error{Full}!void {
+        self.last_transfer_size = msg.len;
+        if (self.last_transfer_size <= self.count) {
+            return error.Full;
+        }
+        if (self.last_transfer_size <= self.capacity - self.head) {
+            return error.Full;
+        }
+        // With start transfer, i will need to basically do: If it goes over capacity, transfer the first, and enqueue the second
+        // And then there's another problem.
+        // Yeah, using last transfer size in here is useless.
+        // [TODO] [BUG!!!!]
+    }
+
+    /// Use this function to know how much you can fit before it reach the end
+    pub fn wrapSplitCount(self: *RingBuffer, msg_length: usize) usize {
+        const end: usize = self.tail + msg_length;
+        if (end > self.capacity) {
+            return msg_length - (end - self.capacity);
+        } else {
+            return msg_length;
+        }
+    }
+
+    pub fn tryEnqueue(self: *RingBuffer, msg: []const u8) error{Full}!void {
+        if (cantEnqueue(self, msg.len)) {
+            return error.Full;
+        }
+        const first_segment_length = wrapSplitCount(self, msg.len);
+        if (first_segment_length < msg.len) {
+            const second_segment_length = msg.len - first_segment_length;
+
+            enqueue(self, msg[0..first_segment_length]);
+            self.tail = 0;
+            enqueue(self, msg[first_segment_length .. first_segment_length + second_segment_length]);
+            return;
+        }
+        _ = enqueue(self, msg);
+    }
+
+    /// Once you've made sure that it won't go over capacity
+    fn enqueue(self: *RingBuffer, msg: []const u8) void {
+        //
+        @memcpy(self.buffer[self.tail .. self.tail + msg.len], msg);
+        self.tail += msg.len;
+        self.count += msg.len;
+        // No wrapping here, we can't enqueue something that goes beyound 0
+    }
+
+    pub fn dequeue(self: *RingBuffer) error{Empty}!void {
+        //
+        if (cantDequeue(self)) {
+            return error.Empty;
+        }
+
+        self.head = (self.head + self.last_transfer_size) % self.capacity;
+        self.count -= self.last_transfer_size;
+    }
+
+    pub fn peek(self: *RingBuffer) error{Empty}![]u8 {
+        if (self.count == 0) {
+            return error.Empty;
+        }
+
+        return self.buffer[self.head..][0..self.last_transfer_size];
+    }
+    // Todo and think of
+
+    fn cantDequeue(self: *const RingBuffer) bool {
+        return self.count == 0;
+    }
+
+    /// Extra is for if you want to add this more.
+    /// to know if its currently exactly full, set extra to 0
+    fn cantEnqueue(self: *const RingBuffer, extra: usize) bool {
+        return self.count + extra > self.capacity;
+    }
+};
+
+var usart2_ring_buffer: RingBuffer = .{};
+
+// Queue structure.
+// Have a queue element.
+// then you can have subqueues.
+// Let's say two sub queues.
+// Or, you can flatten it.
+// Need a ring queue.
+
+pub fn startUsart2DMATransfer(buffer: [*]u8, count: u16) void {
+    if (count > usart2_dma_ring_buffer_size) {
+        // Bad case.
+        return;
+    }
+
+    const uartDmaConfig: dma.StreamConfig = .{
+        .data_transfer_direction = .memory_to_peripheral,
+        .circular_mode_enable = false,
+        .peripheral_increment = false,
+        .memory_increment = true,
+        .peripheral_data_size = .bit8,
+        .memory_data_size = .bit8,
+        .priority = .medium,
+        .channel = .ch4,
+
+        .peripheral_address = &usart2.data,
+        .memory_address_0 = buffer,
+        .memory_address_1 = null,
+        .count = count,
+    };
+    usart2_dma_busy = true;
+    dma.configure_and_start(.dma1, .s6, uartDmaConfig);
+}
+
+pub fn usart2_write_dma(str: []const u8) usize {
+    //
+    if (str.len > 255) {
+        // Must split it
+        return str.len; // for now
+    }
+
+    // @memcpy(write_buffer[0..str.len], str[0..str.len]);
+    // Only start a transfer if it's not currently transmitting
+    if (usart2_dma_is_busy()) {
+        // Busy, add to queue.
+        // If using a ring buffer
+        usart2_ring_buffer.tryEnqueue(str) catch |err| {
+            switch (err) {
+                error.Full => {},
+            }
+        };
+    } else {
+        // startUsart2DMATransfer(&write_buffer, @intCast(str.len));
+    }
+
+    return 0;
+}
+
+export fn DMA1_S6_Handler() void {
+    const flags: dma.StreamFlags = dma.getFlags(.dma1, .s6);
+
+    if (flags.transfer_complete_interrupt_flag) {
+        // Transfer complete, actually do something with this.
+
+        // For a write command using dma.
+        // do some buffer cleaning.
+        // The head and tail, modify it...
+
+        // Don't need to disable it. Once it's complete, the enable flag will be cleared
+        // disable(.dma1, .s5);
+
+        // For a message queue, it would put it here.
+        // There's a queue.
+        // if the queue is not empty, the writter enqueue his request.
+        // If it is empty, it config and enables it.
+        // Now here, the request has finished.
+        // If the queue is not empty, dequeue it. Configure it and then enable it.
+
+        // The dma transfer complete will tell you when usart recieved the final byte in DR.
+        // But usart will take some time to write it.
+        // It can send an interrupt when the last bit of that byte (including parity [optional] and stop bits are written)
+
+        // ============
+        // If using ring buffer, we must
+
+        // Check if queue is empty
+        const queue_empty = true;
+        if (queue_empty) {
+            usart2_dma_busy = false;
+            return;
+        }
+        // Queue is not busy. Must dequeue
+        // And enqueue the new one
+
+    }
+
+    // This works because it has the same structure
+    dma.clearFlags(.dma1, .s6, dma.toClearFlags(flags));
 }
