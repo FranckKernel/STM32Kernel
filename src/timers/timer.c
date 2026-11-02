@@ -39,16 +39,8 @@ void configure_timer16(enum TIMER_NUMBER timer_number, uint16_t prescaler_value,
 	// moved to start timer
 }
 
-void configure_timerPWM(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL channel, uint16_t prescaler_value, uint32_t max_timer_value)
-{
-	if ((timer_number == TIMER3) || ((timer_number == TIMER4) && (max_timer_value > 0xFFFF)))
-	{
-		// Error, arr value too big
-	}
 
-	// Timer 2 initial clock = 96 Mhz. Timer 2 must be enabled in rcc
-	timers[timer_number]->psc.prescaler_value = prescaler_value - 1; // Now 1 Mhz
-	timers[timer_number]->arr.arr16			  = max_timer_value - 1; // Now 10 Khz
+void configure_timerPWM_channel_config(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL channel) {
 
 	switch (channel)
 	{
@@ -106,9 +98,56 @@ void configure_timerPWM(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL chann
 		break;
 	}
 	}
+}
+
+/* 
+   Make a version for multiple channels
+
+*/
+void configure_timerPWM(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL channel, uint16_t prescaler_value, uint32_t max_timer_value)
+{
+	if ((timer_number == TIMER3) || ((timer_number == TIMER4) && (max_timer_value > 0xFFFF)))
+	{
+		// Error, arr value too big
+	}
+
+
+	// Timer 2 initial clock = 96 Mhz. Timer 2 must be enabled in rcc
+	timers[timer_number]->psc.prescaler_value = prescaler_value - 1; // Now 1 Mhz
+	timers[timer_number]->arr.arr16			  = max_timer_value - 1; // Now 10 Khz
+
+	configure_timerPWM_channel_config(timer_number, channel);
+
+
 
 	timers[timer_number]->egr.update_generation		  = 1;
 	timers[timer_number]->sr.update_interrupt_pending = 0;
+}
+
+
+void configure_timerPWM_many(enum TIMER_NUMBER timer_number, struct TIMMER_CHANNEL_ARRAY channels, uint16_t prescaler_value, uint32_t max_timer_value) {
+
+
+	if ((timer_number == TIMER3) || ((timer_number == TIMER4) && (max_timer_value > 0xFFFF)))
+	{
+		// Error, arr value too big
+	}
+
+	// Timer 2 initial clock = 96 Mhz. Timer 2 must be enabled in rcc
+	timers[timer_number]->psc.prescaler_value = prescaler_value - 1; // Now 1 Mhz
+	timers[timer_number]->arr.arr16			  = max_timer_value - 1; // Now 10 Khz
+
+	for (uint8_t channel_index = 0 ; channel_index < channels.channel_count ; channel_index++ ) {
+		enum TIMER_CHANNEL channel = channels.channels[channel_index];
+	configure_timerPWM_channel_config(timer_number, channel);
+
+	}
+
+
+
+	timers[timer_number]->egr.update_generation		  = 1;
+	timers[timer_number]->sr.update_interrupt_pending = 0;
+
 }
 
 void set_pwm_duty(enum TIMER_NUMBER timer_number, enum TIMER_CHANNEL channel, uint32_t value)

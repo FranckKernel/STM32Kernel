@@ -1,6 +1,6 @@
-
 #pragma once
 
+#include <stdint.h>
 enum TIMER_NUMBER
 {
 	TIMER2 = 0,
@@ -16,4 +16,9 @@ enum TIMER_CHANNEL
 	ch2 = 2,
 	ch3 = 3,
 	ch4 = 4,
+};
+
+struct TIMMER_CHANNEL_ARRAY {
+	enum TIMER_CHANNEL channels[4];
+	uint8_t channel_count;
 };
