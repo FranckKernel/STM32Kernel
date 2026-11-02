@@ -379,8 +379,9 @@ pub fn write(usart: *volatile Usart, str: []const u8) usize {
     for (0..str.len) |i| {
         const timed_out: bool = write_u8(usart, str[i]);
         if (timed_out or get_system_tick() - system_tick >= max_system_tick_diff)
-        // The scheduler is very slow.
+        // This writter is very slow.
         // It is completely possible to stall due to writting.
+        // And spend many scheduler cycle writting. (Since this is a polling write)
         // Baud rate = 38kHz.
         // Scheduler = 10 Khz
         // 8 bit + start + stop = 10 bit ber byte.
