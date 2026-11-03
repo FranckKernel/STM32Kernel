@@ -116,6 +116,12 @@ fn uartDrain(
     splat: usize, // Splat is an optimisation thing.
 ) std.Io.Writer.Error!usize {
 
+    // TODO:
+    // Handle empty data.
+    // Validate the final slice.
+    // Preserve the correct return-count semantics.
+    // Keep transmitting only print_msg[0..offset].
+
     // First transmit the internal buffer.
     writeb(w.buffered()) catch {
         return error.WriteFailed;
@@ -133,6 +139,7 @@ fn uartDrain(
 
     // Then transmit additional slices.
 
+    var written: usize = 0;
     var current_left_index: usize = 0;
     var current_right_index: usize = 1;
     while (true) {
@@ -170,21 +177,20 @@ fn uartDrain(
             offset += slice.len;
         }
 
+        writeb(print_msg[0..offset]) catch {
+            return error.WriteFailed;
+        };
+        written += offset;
+
         if (current_right_index == data.len) {
             // right was one past last.
             break;
         }
 
-        writeb(print_msg) catch {
-            return error.WriteFailed;
-        };
-
         // For the new itteration
         current_left_index = current_right_index;
         current_right_index = current_right_index + 1;
     }
-
-    var written: usize = 0;
 
     // The last slice is repeated 'splat' times.
     const last = data[data.len - 1];
