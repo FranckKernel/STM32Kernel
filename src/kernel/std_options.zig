@@ -60,8 +60,8 @@ pub fn kernel_panic_handler(msg: []const u8, first_trace_addr: ?usize) noreturn 
     const panic_msg = "\nKERNEL PANIC: ";
     // stdio.string_writter(panic_msg);
     // stdio.string_writter(msg);
-    _ = stdio.write(panic_msg);
-    _ = stdio.write(msg);
+    _ = stdio.writep(panic_msg);
+    _ = stdio.writep(msg);
 
     if (first_trace_addr) |addr| {
         // stdio.string_writter("\nError at ");

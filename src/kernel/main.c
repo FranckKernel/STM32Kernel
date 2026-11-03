@@ -157,11 +157,27 @@ int main(void)
 	puts("Configuring GPIO B6 as Alternate Function AF2 : Timer 4 Channel 1 (for pwm)\n");
 	gpio_port_mode_setup(GPIOB, 6, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
 	gpio_output_type_setup(GPIOB, 6, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
-	gpio_alternate_function_setup(GPIOB, 6, AF2); // AF2 does it so the following happen
-	// B6: Tim4 -> Channel 1
-	// B7: Tim4 -> Channel 2
-	// B8: Tim4 -> Channel 3
-	// B9: Tim4 -> Channel 4
+	gpio_alternate_function_setup(GPIOB, 6, AF2);
+	if (false)
+	{
+		// AF2 does it so the following happen
+		// B6: Tim4 -> Channel 1
+		// B7: Tim4 -> Channel 2
+		// B8: Tim4 -> Channel 3
+		// B9: Tim4 -> Channel 4
+
+		gpio_port_mode_setup(GPIOB, 7, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
+		gpio_output_type_setup(GPIOB, 7, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
+		gpio_alternate_function_setup(GPIOB, 7, AF2); // AF2 does it so the following happen
+
+		gpio_port_mode_setup(GPIOB, 8, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
+		gpio_output_type_setup(GPIOB, 8, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
+		gpio_alternate_function_setup(GPIOB, 8, AF2); // AF2 does it so the following happen
+
+		gpio_port_mode_setup(GPIOB, 9, GPIO_PORT_MODE_ALTERNATE_FUNCTION);
+		gpio_output_type_setup(GPIOB, 9, GPIO_PORT_OUTPUT_TYPE_PUSH_PULL);
+		gpio_alternate_function_setup(GPIOB, 9, AF2); // AF2 does it so the following happen
+	}
 
 	// The task for timer 2.
 	puts("Adding the task runned by the scheduler\n");
@@ -172,6 +188,11 @@ int main(void)
 
 	// uint16_t pwm_prescaler = timer_prescaler;
 	puts("Configuring the timer 4 channel 1 for PWM at 10Khz with precision 1/800\n");
+	if (false)
+	{
+		configure_timerPWM_many(
+			TIMER4, (struct TIMMER_CHANNEL_ARRAY){.channel_count = 4, .channels = {ch1, ch2, ch3, ch4}}, pwm_prescaler, pwm_duty_steps);
+	}
 	configure_timerPWM(TIMER4, ch1, pwm_prescaler, pwm_duty_steps); // 10 Khz pwm
 																	// set_pwm_duty(TIMER4, ch1, 1000);
 

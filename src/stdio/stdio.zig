@@ -12,8 +12,11 @@ pub inline fn activateModuleStdio() void {
 
 // C import is depracated
 
-pub fn write(bytes: []const u8) i32 {
-    const bytes_written: usize = usart.usart2_write(bytes);
+fn write(
+    bytes: []const u8,
+    comptime hardware_writer: *const fn ([]const u8) usize,
+) i32 {
+    const bytes_written: usize = hardware_writer(bytes);
     // const bytes_written: i32 = usart2_write(bytes.ptr, bytes.len);
 
     if (bytes_written != bytes.len) {
@@ -23,59 +26,192 @@ pub fn write(bytes: []const u8) i32 {
     return @intCast(bytes_written);
 }
 
-pub fn print(comptime fmt: []const u8, args: anytype) i32 {
-    var buf: [512]u8 = undefined;
+const print_message_capacity = usart.print_message_capacity;
+
+fn print(
+    comptime fmt: []const u8,
+    args: anytype,
+    comptime writer: *const fn ([]const u8) i32,
+) i32 {
+    var buf: [print_message_capacity]u8 = undefined;
     const s = std.fmt.bufPrint(&buf, fmt, args) catch {
-        const nbr_of_written_char: i32 = write(&buf); // formatting ran out of space: send what fit
-        _ = write("...\r\n");
+        const nbr_of_written_char: i32 = writer(&buf); // formatting ran out of space: send what fit
+        _ = writer("...\r\n");
         return -@abs(nbr_of_written_char);
     };
-    return write(s);
+    return writer(s);
 }
 
-pub fn vprint(comptime fmt: []const u8, args: anytype) void {
-    var buf: [512]u8 = undefined;
+fn vprint(
+    comptime fmt: []const u8,
+    args: anytype,
+    comptime writer: *const fn ([]const u8) i32,
+) void {
+    var buf: [print_message_capacity]u8 = undefined;
     const s = std.fmt.bufPrint(&buf, fmt, args) catch {
-        _ = write(&buf); // formatting ran out of space: send what fit
-        _ = write("...\r\n");
+        _ = writer(&buf); // formatting ran out of space: send what fit
+        _ = writer("...\r\n");
         return;
     };
 
-    _ = write(s);
+    _ = writer(s);
     return;
 }
 
-pub fn write_background(bytes: []const u8) i32 {
-    const bytes_written: usize = usart.usart2_write_background(bytes);
-    // const bytes_written: i32 = usart2_write(bytes.ptr, bytes.len);
+pub fn writep(bytes: []const u8) i32 {
+    return write(bytes, usart.usart2_write);
+}
 
-    if (bytes_written != bytes.len) {
-        return -@as(i32, @intCast(bytes_written));
-    }
+pub fn printp(
+    comptime fmt: []const u8,
+    args: anytype,
+) i32 {
+    return print(fmt, args, writep);
+}
 
-    return @intCast(bytes_written);
+pub fn vprintp(
+    comptime fmt: []const u8,
+    args: anytype,
+) void {
+    return vprint(fmt, args, writep);
+}
+
+// ==================== Background with STDIO ================
+
+pub fn writeb(bytes: []const u8) i32 {
+    return write(bytes, usart.usart2_write_background);
 }
 
 pub fn printb(comptime fmt: []const u8, args: anytype) i32 {
-    var buf: [512]u8 = undefined;
-    const s = std.fmt.bufPrint(&buf, fmt, args) catch {
-        const nbr_of_written_char: i32 = write_background(&buf); // formatting ran out of space: send what fit
-        _ = write_background("...\r\n");
-        return -@abs(nbr_of_written_char);
-    };
-    return write_background(s);
+    return print(fmt, args, writeb);
 }
 
 pub noinline fn vprintb(comptime fmt: []const u8, args: anytype) void {
-    var buf: [512]u8 = undefined;
-    const s = std.fmt.bufPrint(&buf, fmt, args) catch {
-        _ = write_background(&buf); // formatting ran out of space: send what fit
-        _ = write_background("...\r\n");
-        return;
+    vprint(fmt, args, writeb);
+}
+
+// ================================ DMA version ===============
+
+pub fn write_dma(bytes: []const u8) i32 {
+    return write(bytes, usart.usart2_write_dma);
+}
+
+pub fn printd(comptime fmt: []const u8, args: anytype) i32 {
+    return print(fmt, args, write_dma);
+}
+
+pub noinline fn vprintd(comptime fmt: []const u8, args: anytype) void {
+    vprint(fmt, args, write_dma);
+}
+
+// =============================== Usage example
+
+fn uartDrain(
+    w: *std.Io.Writer,
+    data: []const []const u8, // An array of strings.
+    splat: usize, // Splat is an optimisation thing.
+) std.Io.Writer.Error!usize {
+
+    // First transmit the internal buffer.
+    writeb(w.buffered()) catch {
+        return error.WriteFailed;
     };
 
-    _ = write_background(s);
-    return;
+    w.end = 0;
+
+    for (data[0 .. data.len - 1]) |slice| {
+        // A good idea would be to check the slice length.
+        // And merge slices
+        if (slice.len > print_message_capacity) {
+            return error.WriteFailed;
+        }
+    }
+
+    // Then transmit additional slices.
+
+    var merge_sizes: [data.len]usize = @splat(0);
+    var merge_array_len: usize = 0;
+    var merge_array_index: usize = 0;
+    var current_left_index: usize = 0;
+    var current_right_index: usize = 1;
+    while (true) {
+        //
+
+        const left_slice = data[current_left_index];
+        var current_merge_size: usize = left_slice.len;
+        while (true) {
+            if (current_right_index >= data.len) {
+                break;
+            }
+            const right_slice = data[current_right_index];
+
+            if (current_merge_size + right_slice.len > print_message_capacity) {
+                break;
+            } else {
+                current_merge_size += right_slice.len;
+                current_right_index += 1;
+            }
+        }
+        // out of innter loop
+
+        // In both case, right_index is last + 1 of merge
+        // [100, 75, 33, 50]
+        //  L^           R^
+        // We have a merge of L,R=0,3
+        // Length = R - L = 3.
+        // Last index in merge is 2.
+        const this_merge_length = (current_right_index - current_left_index);
+        merge_sizes[merge_array_index] = this_merge_length;
+        merge_array_index += 1;
+        merge_array_len += 1;
+
+        var print_msg: [print_message_capacity]u8 = @splat(0);
+        var offset: usize = 0;
+        for (current_left_index..current_right_index) |i| {
+            const slice = data[i];
+            @memcpy(print_msg[offset..][0..slice.len], slice);
+            offset += slice.len;
+        }
+
+        if (current_right_index == data.len) {
+            // right was one past last.
+            break;
+        }
+
+        writeb(print_msg);
+
+        // For the new itteration
+        current_left_index = current_right_index;
+        current_right_index = current_right_index + 1;
+    }
+
+    var written: usize = 0;
+
+    // The last slice is repeated 'splat' times.
+    const last = data[data.len - 1];
+
+    for (0..splat) |_| {
+        writeb(last) catch {
+            return error.WriteFailed;
+        };
+
+        written += last.len;
+    }
+
+    return written;
+}
+
+fn test_io_writter() void {
+
+    // STDIO Writter:
+    var writer: std.Io.Writer = .{
+        .buffer = &.{},
+        .vtable = &.{
+            .drain = uartDrain,
+        },
+    };
+
+    try writer.print("123456  12hex={x}", .{12});
 }
 
 pub const Bin32 = struct {

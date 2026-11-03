@@ -9,7 +9,7 @@ const stdio = @import("stdio");
 const dma = @import("dma");
 
 const print = stdio.print;
-const vprint = stdio.vprint;
+const vprint = stdio.vprintp;
 const vprintb = stdio.vprintb;
 
 pub const panic = std.debug.FullPanic(std_options.kernel_panic_handler);

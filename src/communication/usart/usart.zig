@@ -1,6 +1,7 @@
 const std = @import("std");
 const macros = @import("macros");
 const dma = @import("dma");
+const ds = @import("data_structures");
 // const macros_direct = @import("../../common/macros.zig");
 
 const read32 = macros.read32;
@@ -478,17 +479,16 @@ export fn Usart2Handler() void {
 }
 
 // ========================================== DMA Usart
-
 var usart2_dma_busy: bool = false;
+
+// DMA has a 16 bit limit
+pub const print_message_capacity: u16 = 512;
 
 pub inline fn usart2_dma_is_busy() bool {
     return usart2_dma_busy;
 }
 
-const usart2_dma_ring_buffer_size = 4096;
-
-var tx_head_dma: usize = 0; // The start of the queue. When dequeing, the isr adds to this
-var tx_tail_dma: usize = 0; // The end of the queue. When enqueueing, the writter add to this.
+// The interrupt version
 
 const RingBufferError = error{
     Full,
@@ -496,6 +496,9 @@ const RingBufferError = error{
     TransferInProgress,
 };
 
+const UsartMessage = struct { msg: [print_message_capacity]u8 = undefined, msg_len: u16 };
+
+var usart2_DMA_RingQueue = ds.RingQueue(UsartMessage, 16);
 
 // Queue structure.
 // Have a queue element.
@@ -505,7 +508,7 @@ const RingBufferError = error{
 // Need a ring queue.
 
 pub fn startUsart2DMATransfer(buffer: [*]u8, count: u16) void {
-    if (count > usart2_dma_ring_buffer_size) {
+    if (count > print_message_capacity) {
         // Bad case.
         return;
     }
@@ -531,7 +534,7 @@ pub fn startUsart2DMATransfer(buffer: [*]u8, count: u16) void {
 
 pub fn usart2_write_dma(str: []const u8) usize {
     //
-    if (str.len > 255) {
+    if (str.len > print_message_capacity) {
         // Must split it
         return str.len; // for now
     }
@@ -541,6 +544,8 @@ pub fn usart2_write_dma(str: []const u8) usize {
     if (usart2_dma_is_busy()) {
         // Busy, add to queue.
         // If using a ring buffer
+        // usart2_DMA_RingQueue;
+        while (true) {}
     } else {
         // startUsart2DMATransfer(&write_buffer, @intCast(str.len));
     }

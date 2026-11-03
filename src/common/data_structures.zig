@@ -1,22 +1,29 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
+const CommonError = error{
+    Full,
+    Empty,
+};
+
 pub fn RingQueue(comptime T: type, comptime capacity: usize) type {
     return struct {
         const Self = @This();
 
         buffer: [capacity]T = undefined,
-        head: usize = 0,
-        tail: usize = 0,
+        head_idx: usize = 0,
+        tail_idx: usize = 0,
         count: usize = 0,
 
+        // ! means error union
+        ///
         pub fn enqueue(self: *Self, item: T) error{Full}!void {
             if (self.count == capacity) {
                 return error.Full;
             }
 
-            self.buffer[self.tail] = item;
-            self.tail = (self.tail + 1) % capacity;
+            self.buffer[self.tail_idx] = item;
+            self.tail_idx = (self.tail_idx + 1) % capacity;
             self.count += 1;
         }
 
@@ -25,8 +32,8 @@ pub fn RingQueue(comptime T: type, comptime capacity: usize) type {
                 return null;
             }
 
-            const item = self.buffer[self.head];
-            self.head = (self.head + 1) % capacity;
+            const item = self.buffer[self.head_idx];
+            self.head_idx = (self.head_idx + 1) % capacity;
             self.count -= 1;
             return item;
         }
