@@ -84,3 +84,5 @@ pub fn kernel_panic_handler(msg: []const u8, first_trace_addr: ?usize) noreturn 
         asm volatile ("wfi");
     }
 }
+
+// ===================== Some shared variables used in something that would otherwise be circular

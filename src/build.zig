@@ -57,6 +57,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
+    const common_variables_modules = b.createModule(.{
+        .root_source_file = b.path("./common/common_variables.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const stdio_module = b.createModule(.{
         .root_source_file = b.path("stdio/stdio.zig"),
         .target = target,
@@ -102,9 +108,10 @@ pub fn build(b: *std.Build) void {
     usart_module.addImport("macros", macros_module);
     usart_module.addImport("dma", dma_module);
     usart_module.addImport("data_structures", data_structures_modules);
+    usart_module.addImport("common_variables", common_variables_modules);
 
     stdio_module.addImport("usart", usart_module);
-    stdio_module.addImport("usart", usart_module);
+    stdio_module.addImport("common_variables", common_variables_modules);
 
     gpio_module.addImport("macros", macros_module);
 

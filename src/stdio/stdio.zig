@@ -1,6 +1,8 @@
 const std = @import("std");
 const usart = @import("usart");
 
+const common_variables = @import("common_variables");
+
 var activation_flag: u32 = 0;
 pub inline fn activateModuleStdio() void {
     const ptr: *volatile u32 = &activation_flag;
@@ -12,6 +14,8 @@ pub inline fn activateModuleStdio() void {
 
 // C import is depracated
 
+// Change write so it use an error, not a negative int.
+// This is Zig, not C
 fn write(
     bytes: []const u8,
     comptime hardware_writer: *const fn ([]const u8) usize,
@@ -26,7 +30,7 @@ fn write(
     return @intCast(bytes_written);
 }
 
-const print_message_capacity = usart.print_message_capacity;
+const print_message_capacity = common_variables.print_message_capacity;
 
 fn print(
     comptime fmt: []const u8,
@@ -104,7 +108,7 @@ pub noinline fn vprintd(comptime fmt: []const u8, args: anytype) void {
     vprint(fmt, args, write_dma);
 }
 
-// =============================== Usage example
+// ====================== Stdio writter.
 
 fn uartDrain(
     w: *std.Io.Writer,
@@ -129,9 +133,6 @@ fn uartDrain(
 
     // Then transmit additional slices.
 
-    var merge_sizes: [data.len]usize = @splat(0);
-    var merge_array_len: usize = 0;
-    var merge_array_index: usize = 0;
     var current_left_index: usize = 0;
     var current_right_index: usize = 1;
     while (true) {
@@ -160,10 +161,6 @@ fn uartDrain(
         // We have a merge of L,R=0,3
         // Length = R - L = 3.
         // Last index in merge is 2.
-        const this_merge_length = (current_right_index - current_left_index);
-        merge_sizes[merge_array_index] = this_merge_length;
-        merge_array_index += 1;
-        merge_array_len += 1;
 
         var print_msg: [print_message_capacity]u8 = @splat(0);
         var offset: usize = 0;
@@ -178,7 +175,9 @@ fn uartDrain(
             break;
         }
 
-        writeb(print_msg);
+        writeb(print_msg) catch {
+            return error.WriteFailed;
+        };
 
         // For the new itteration
         current_left_index = current_right_index;
@@ -189,13 +188,43 @@ fn uartDrain(
 
     // The last slice is repeated 'splat' times.
     const last = data[data.len - 1];
+    if (last.len == 0) {
+        return;
+    }
 
-    for (0..splat) |_| {
-        writeb(last) catch {
-            return error.WriteFailed;
-        };
+    const max_splat = print_message_capacity / last.len;
 
-        written += last.len;
+    // a*q + r
+    const full_batches = splat / max_splat;
+    const remainder = splat % max_splat;
+
+    var print_msg: [print_message_capacity]u8 = undefined;
+
+    // Full batches
+    for (0..full_batches) |_| {
+        for (0..max_splat) |i| {
+            const offset = i * last.len;
+            @memcpy(print_msg[offset..][0..last.len], last);
+        }
+
+        try writeb(print_msg[0 .. max_splat * last.len]);
+        written += max_splat * last.len;
+    }
+
+    // Remaining repetitions
+    if (remainder != 0) {
+        const remaining_len = remainder * last.len;
+
+        if (full_batches == 0) {
+            // An optimisation, if full_batches was >0, then print_msg was already populated
+            for (0..remainder) |i| {
+                const offset = i * last.len;
+                @memcpy(print_msg[offset..][0..last.len], last);
+            }
+        }
+
+        try writeb(print_msg[0..remaining_len]);
+        written += remaining_len;
     }
 
     return written;
@@ -214,6 +243,7 @@ fn test_io_writter() void {
     try writer.print("123456  12hex={x}", .{12});
 }
 
+// =============================== Usage example
 pub const Bin32 = struct {
     v: u32,
 

@@ -2,6 +2,8 @@ const std = @import("std");
 const macros = @import("macros");
 const dma = @import("dma");
 const ds = @import("data_structures");
+
+const common_variables = @import("common_variables");
 // const macros_direct = @import("../../common/macros.zig");
 
 const read32 = macros.read32;
@@ -482,7 +484,6 @@ export fn Usart2Handler() void {
 var usart2_dma_busy: bool = false;
 
 // DMA has a 16 bit limit
-pub const print_message_capacity: u16 = 512;
 
 pub inline fn usart2_dma_is_busy() bool {
     return usart2_dma_busy;
@@ -496,9 +497,15 @@ const RingBufferError = error{
     TransferInProgress,
 };
 
-const UsartMessage = struct { msg: [print_message_capacity]u8 = undefined, msg_len: u16 };
+const print_message_capacity = common_variables.print_message_capacity;
 
-var usart2_DMA_RingQueue = ds.RingQueue(UsartMessage, 16);
+const UsartMessage = struct {
+    //
+    msg: [print_message_capacity]u8 = undefined,
+    len: u16 = 0,
+};
+
+var usart2_DMA_RingQueue: ds.RingQueue(UsartMessage, 16) = .{};
 
 // Queue structure.
 // Have a queue element.
@@ -532,6 +539,8 @@ pub fn startUsart2DMATransfer(buffer: [*]u8, count: u16) void {
     dma.configure_and_start(.dma1, .s6, uartDmaConfig);
 }
 
+var msgWritting: UsartMessage = .{};
+
 pub fn usart2_write_dma(str: []const u8) usize {
     //
     if (str.len > print_message_capacity) {
@@ -545,9 +554,14 @@ pub fn usart2_write_dma(str: []const u8) usize {
         // Busy, add to queue.
         // If using a ring buffer
         // usart2_DMA_RingQueue;
+        // The ring buffer should memcpy to get itself
+        usart2_DMA_RingQueue.enqueueSlice(str, print_message_capacity) catch {
+            return 0;
+        };
         while (true) {}
     } else {
-        // startUsart2DMATransfer(&write_buffer, @intCast(str.len));
+        @memcpy(msgWritting.msg[0..str.len], str);
+        startUsart2DMATransfer(&msgWritting.msg, @intCast(str.len));
     }
 
     return 0;
