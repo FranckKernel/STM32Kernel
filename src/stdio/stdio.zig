@@ -230,11 +230,12 @@ fn uartDrain(
     return written;
 }
 
-fn test_io_writter() void {
+var io_buffer: [print_message_capacity]u8 = undefined;
+pub fn test_io_writter() void {
 
     // STDIO Writter:
     var writer: std.Io.Writer = .{
-        .buffer = &.{},
+        .buffer = &io_buffer,
         .vtable = &.{
             .drain = uartDrain,
         },
