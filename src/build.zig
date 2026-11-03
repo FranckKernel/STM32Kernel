@@ -46,6 +46,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const data_structures_modules = b.createModule(.{
+        .root_source_file = b.path("common/data_structures.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const std_options_module = b.createModule(.{
         .root_source_file = b.path("kernel/std_options.zig"),
         .target = target,
@@ -92,15 +98,20 @@ pub fn build(b: *std.Build) void {
     main_module.addImport("dma", dma_module);
 
     std_options_module.addImport("stdio", stdio_module);
+
     usart_module.addImport("macros", macros_module);
     usart_module.addImport("dma", dma_module);
+    usart_module.addImport("data_structures", data_structures_modules);
+
     stdio_module.addImport("usart", usart_module);
     stdio_module.addImport("usart", usart_module);
+
     gpio_module.addImport("macros", macros_module);
 
-    // The common imports
     dma_module.addImport("macros", macros_module);
-    dma_module.addImport("stdio", stdio_module);
+    if (false) {
+        dma_module.addImport("stdio", stdio_module);
+    }
     // If I use stdio for testing dma...Circular dependancy
 
     // kernel_lib.root_module.red_zone = false;

@@ -1,3 +1,6 @@
+const std = @import("std");
+const builtin = @import("builtin");
+
 pub fn RingQueue(comptime T: type, comptime capacity: usize) type {
     return struct {
         const Self = @This();

@@ -496,94 +496,6 @@ const RingBufferError = error{
     TransferInProgress,
 };
 
-const RingBuffer = struct {
-    buffer: [usart2_dma_ring_buffer_size]u8 = @splat(0),
-    head: usize = 0, // The start of the queue. When dequeing, the isr adds to this
-    tail: usize = 0, // The end of the queue. When enqueueing, the writter add to this.
-    capacity: usize = usart2_dma_ring_buffer_size,
-    count: usize = 0,
-    last_transfer_size: usize = 0,
-
-    pub fn startTransfer(self: *RingBuffer, msg: []u8) error{Full}!void {
-        self.last_transfer_size = msg.len;
-        if (self.last_transfer_size <= self.count) {
-            return error.Full;
-        }
-        if (self.last_transfer_size <= self.capacity - self.head) {
-            return error.Full;
-        }
-        // With start transfer, i will need to basically do: If it goes over capacity, transfer the first, and enqueue the second
-        // And then there's another problem.
-        // Yeah, using last transfer size in here is useless.
-        // [TODO] [BUG!!!!]
-    }
-
-    /// Use this function to know how much you can fit before it reach the end
-    pub fn wrapSplitCount(self: *RingBuffer, msg_length: usize) usize {
-        const end: usize = self.tail + msg_length;
-        if (end > self.capacity) {
-            return msg_length - (end - self.capacity);
-        } else {
-            return msg_length;
-        }
-    }
-
-    pub fn tryEnqueue(self: *RingBuffer, msg: []const u8) error{Full}!void {
-        if (cantEnqueue(self, msg.len)) {
-            return error.Full;
-        }
-        const first_segment_length = wrapSplitCount(self, msg.len);
-        if (first_segment_length < msg.len) {
-            const second_segment_length = msg.len - first_segment_length;
-
-            enqueue(self, msg[0..first_segment_length]);
-            self.tail = 0;
-            enqueue(self, msg[first_segment_length .. first_segment_length + second_segment_length]);
-            return;
-        }
-        _ = enqueue(self, msg);
-    }
-
-    /// Once you've made sure that it won't go over capacity
-    fn enqueue(self: *RingBuffer, msg: []const u8) void {
-        //
-        @memcpy(self.buffer[self.tail .. self.tail + msg.len], msg);
-        self.tail += msg.len;
-        self.count += msg.len;
-        // No wrapping here, we can't enqueue something that goes beyound 0
-    }
-
-    pub fn dequeue(self: *RingBuffer) error{Empty}!void {
-        //
-        if (cantDequeue(self)) {
-            return error.Empty;
-        }
-
-        self.head = (self.head + self.last_transfer_size) % self.capacity;
-        self.count -= self.last_transfer_size;
-    }
-
-    pub fn peek(self: *RingBuffer) error{Empty}![]u8 {
-        if (self.count == 0) {
-            return error.Empty;
-        }
-
-        return self.buffer[self.head..][0..self.last_transfer_size];
-    }
-    // Todo and think of
-
-    fn cantDequeue(self: *const RingBuffer) bool {
-        return self.count == 0;
-    }
-
-    /// Extra is for if you want to add this more.
-    /// to know if its currently exactly full, set extra to 0
-    fn cantEnqueue(self: *const RingBuffer, extra: usize) bool {
-        return self.count + extra > self.capacity;
-    }
-};
-
-var usart2_ring_buffer: RingBuffer = .{};
 
 // Queue structure.
 // Have a queue element.
@@ -629,11 +541,6 @@ pub fn usart2_write_dma(str: []const u8) usize {
     if (usart2_dma_is_busy()) {
         // Busy, add to queue.
         // If using a ring buffer
-        usart2_ring_buffer.tryEnqueue(str) catch |err| {
-            switch (err) {
-                error.Full => {},
-            }
-        };
     } else {
         // startUsart2DMATransfer(&write_buffer, @intCast(str.len));
     }
