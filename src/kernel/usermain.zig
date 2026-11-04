@@ -33,6 +33,13 @@ export fn zig_main() noreturn {
     stdio.print_example();
     _ = usart.usart2_write_dma("Hello\n");
 
+    comptime for (0..8) |i| {
+        @compileLog("Index:", i);
+    };
+    inline for (0..8) |i| {
+        _ = stdio.printb("The letter is .{}\n", .{i});
+    }
+
     if (true) {
         // @panic("Panic works\n");
     }
